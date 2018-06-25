@@ -4,8 +4,8 @@
 
 This project providers users the ability to do topic modeling with [Paragraph Vector Topic Models](https://www.uni-marburg.de/fb02/makro/forschung/magkspapers/paper_2018/15-2018_lenz.pdf).
 
-<img src="img/topic.jpg" height="277px" width="640px" align="right">
-<img src="img/timeline.jpg" height="277px" width="640px" align="right">
+<img src="img/topic.png" height="300px" width="375px" align="left">
+<img src="img/timeline.png" height="300px" width="375px" >
 
 
 
