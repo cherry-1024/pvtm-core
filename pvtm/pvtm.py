@@ -17,10 +17,10 @@ ap.add_argument("-l", "--language", default="en", required=False,
                 help="Language of the text documents used for lemmatization. Default = 'en'")
 
 # d2v
-ap.add_argument("-d2vp", "--d2v-model", default="", required=False,
+ap.add_argument("-d2vp", "--d2v_model", default="", required=False,
                 help="Provide a path to a folder where a Doc2Vec.model file is stored. "
                      "No new model will be trained but the pre-trained model will be used instead.")
-ap.add_argument("-gmmp", "--gmm-model", default="", required=False,
+ap.add_argument("-gmmp", "--gmm_model", default="", required=False,
                 help="Provide a path to a folder where a gmm.pkl file is stored. "
                      "No new model will be trained but the pre-trained model will be used instead.")
 ap.add_argument("-e", "--epochs", default=10, required=False,
@@ -79,21 +79,38 @@ if __name__ == '__main__':
     ###################################
     # # Load Model, Data and Stopwords
     ###################################
-    # Load doc2vec model
-    model = doc2vec.Doc2Vec.load(args['d2v-model'] + '/doc2vec.model')
+    # Load the specified data into a dataframe, 'out',
+    # and load the trained Doc2Vec model(or train a new one, if NEW_Doc2Vec = 1).
+    # train a new model if specified, otherwise load pretrained model
+    if 'd2v-model' not in args.keys():
+        print('Training New Doc2Vec Model.')
+        out, model = doc2vec.run_script(args["input"],
+                                        args['output'] + '/Doc2Vec.model',
+                                        args['output'] + '/documents.csv',
+                                        args['epochs'],
+                                        args['dimension'],
+                                        args['language'],
+                                        args['vectorizermax'],
+                                        args['vectorizermin'],
+                                        args['lemmathreads'],
+                                        args['lemmabatchsize']
+                                        )
 
-    # load document dataframe
-    out = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['output']),
-                                             ['gmm_topics', 'gmm_probas'])
+    else:
+        print('Using pre-trained Doc2Vec Model.')
+        model = doc2vec.Doc2Vec.load(args['d2v_model'] + '/doc2vec.model')
 
-    # load topics dataframe
-    topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['output']))
+        # load document dataframe
+        out = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['output']),
+                                                 ['gmm_topics', 'gmm_probas'])
+        if 'gmm-model' in args.keys():
+            print('Loading Topic Dataframe.')
+            topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['output']))
+            clf = joblib.load('{}/gmm.pkl'.format(args['gmm_model']))
 
-    # load gmm model
-    clf = joblib.load('{}/gmm.pkl'.format(args['gmm-model']))
-
-    # docvecs
+    # store the DocVecs to tsv
     vectors = np.array(model.docvecs)
+    pd.DataFrame(vectors).to_csv('{}/vectors.tsv'.format(args['output']), sep='\t', header=False)
 
     # Detect the language of the documents and load the respective stopwords
     vocab = list(model.wv.vocab.keys())
@@ -102,7 +119,7 @@ if __name__ == '__main__':
     print('Document Df: ', out.shape)
     print('Vectors: ', vectors.shape)
 
-    if 'gmm-model' not in args.keys():
+    if 'gmm_model' not in args.keys():
         # ## GMM for Topic clustering
         #
         # We use a Gaussian Mixture Model to cluster the Document Vectors learned by the Doc2Vec model into soft topics.
