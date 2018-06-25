@@ -29,14 +29,14 @@ ap.add_argument("-d", "--dimension", default=100, required=False,
                 help="Doc2Vec embedding dimension. Default = 100")
 
 # preprocessing
-ap.add_argument("-lt", "--lemmathreads", default=-1, required=False,
+ap.add_argument("-lt", "--lemmathreads", default=-1, required=False, type=int,
                 help="Number of threads for the lemmatizer. Default = '-1'")
-ap.add_argument("-lbs", "--lemmabatchsize", default=300, required=False,
+ap.add_argument("-lbs", "--lemmabatchsize", default=300, required=False, type=int,
                 help="Batch size for lemmatizer. Default = '300'")
-ap.add_argument("-vmin", "--vectorizermin", default=4, required=False,
-                help="max number of documents in which a word has to appear to be considered. Default = '4'")
-ap.add_argument("-vmax", "--vectorizermax", default=0.5, required=False,
-                help="max number of documents in which a word is allowed to appear to be considered. Default = '0.5'")
+ap.add_argument("-vmin", "--vectorizermin", default=2, required=False,
+                help="max number of documents in which a word has to appear to be considered. Default = 2")
+ap.add_argument("-vmax", "--vectorizermax", default=0.95, required=False,
+                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.95")
 
 # gmm
 ap.add_argument("-gv", "--gmmverbose", default=1, required=False,
@@ -79,38 +79,21 @@ if __name__ == '__main__':
     ###################################
     # # Load Model, Data and Stopwords
     ###################################
-    # Load the specified data into a dataframe, 'out',
-    # and load the trained Doc2Vec model(or train a new one, if NEW_Doc2Vec = 1).
-    # train a new model if specified, otherwise load pretrained model
-    if 'd2v-model' not in args.keys():
-        print('Training New Doc2Vec Model.')
-        out, model = doc2vec.run_script(args["input"],
-                                        args['output'] + '/Doc2Vec.model',
-                                        args['output'] + '/documents.csv',
-                                        args['epochs'],
-                                        args['dimension'],
-                                        args['language'],
-                                        args['vectorizermax'],
-                                        args['vectorizermin'],
-                                        args['lemmathreads'],
-                                        args['lemmabatchsize']
-                                        )
+    # Load doc2vec model
+    model = doc2vec.Doc2Vec.load(args['d2v-model'] + '/doc2vec.model')
 
-    else:
-        print('Using pre-trained Doc2Vec Model.')
-        model = doc2vec.Doc2Vec.load(args['d2v-model'] + '/doc2vec.model')
+    # load document dataframe
+    out = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['output']),
+                                             ['gmm_topics', 'gmm_probas'])
 
-        # load document dataframe
-        out = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['output']),
-                                                 ['gmm_topics', 'gmm_probas'])
-        if 'gmm-model' in args.keys():
-            print('Loading Topic Dataframe.')
-            topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['output']))
-            clf = joblib.load('{}/gmm.pkl'.format(args['gmm-model']))
+    # load topics dataframe
+    topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['output']))
 
-    # store the DocVecs to tsv
+    # load gmm model
+    clf = joblib.load('{}/gmm.pkl'.format(args['gmm-model']))
+
+    # docvecs
     vectors = np.array(model.docvecs)
-    pd.DataFrame(vectors).to_csv('{}/vectors.tsv'.format(args['output']), sep='\t', header=False)
 
     # Detect the language of the documents and load the respective stopwords
     vocab = list(model.wv.vocab.keys())
