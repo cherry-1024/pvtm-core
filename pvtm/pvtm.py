@@ -82,10 +82,10 @@ if __name__ == '__main__':
     # Load the specified data into a dataframe, 'out',
     # and load the trained Doc2Vec model(or train a new one, if NEW_Doc2Vec = 1).
     # train a new model if specified, otherwise load pretrained model
-    if 'd2v-model' not in args.keys():
+    if args['d2v_model'] == "":
         print('Training New Doc2Vec Model.')
         out, model = doc2vec.run_script(args["input"],
-                                        args['output'] + '/Doc2Vec.model',
+                                        args['output'] + '/doc2vec.model',
                                         args['output'] + '/documents.csv',
                                         args['epochs'],
                                         args['dimension'],
@@ -103,7 +103,7 @@ if __name__ == '__main__':
         # load document dataframe
         out = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['output']),
                                                  ['gmm_topics', 'gmm_probas'])
-        if 'gmm-model' in args.keys():
+        if args['gmm_model'] != "":
             print('Loading Topic Dataframe.')
             topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['output']))
             clf = joblib.load('{}/gmm.pkl'.format(args['gmm_model']))
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     print('Document Df: ', out.shape)
     print('Vectors: ', vectors.shape)
 
-    if 'gmm_model' not in args.keys():
+    if args['gmm_model'] == "":
         # ## GMM for Topic clustering
         #
         # We use a Gaussian Mixture Model to cluster the Document Vectors learned by the Doc2Vec model into soft topics.
