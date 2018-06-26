@@ -52,6 +52,7 @@ ap.add_argument("-ntp", "--numtopicwords", default=50, required=False,
                 help="How many top words per topic to store. Default = 50")
 
 args = vars(ap.parse_args())
+args['gmmrange'] = range(args['gmmrange'][0], args['gmmrange'][1], args['gmmrange'][2])
 # display a friendly message to the user
 print("Use data: {}".format(os.path.abspath(args["input"])))
 
@@ -178,13 +179,13 @@ if __name__ == '__main__':
 
         """
         # Topic labeling
-    
+
         Here the found clusters/topics are labelled in different ways.
-    
+
         - The 'num_words' most frequent words found in the articles, stopwordssss excluded, are used to label the topic.
         - The most similar words to the embedding vector of each cluster center are used to further describe the cluster.
         - The most similar documents to the embedding vector of each cluster center get appended.
-    
+
         The resulting dataframe, 'topics', holds a row for every cluster/topic with the described information.
         """
 

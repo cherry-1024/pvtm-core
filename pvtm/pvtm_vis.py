@@ -135,6 +135,10 @@ plt.close()
 print('wordclouds..')
 commands = ["RScript", "wordclouds.R", args['path']]
 subprocess.call(commands)
+
+
+print('Wordclouds to png..')
+command = 'FOR %A IN ({}\wordclouds\*.svg) DO inkscape %A --export-png=%A.png --export-area-drawing -b "white" -d 800'.format(args['path'])
+os.system(command=command)
+
 print('Finished')
-
-
