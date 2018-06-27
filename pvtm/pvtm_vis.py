@@ -51,24 +51,11 @@ clf = joblib.load('{}/gmm.pkl'.format(args['path']))
 
 # docvecs 
 vectors = np.array(model.docvecs).astype('float64')
+vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(args['path']), sep='\t', index_col=0)
 
 
 
-
-pvtm_utils.check_path('{}/wordclouds'.format(args['path']))
-
-topicgroup = data.groupby('gmm_top_topic')
-for i,group in topicgroup:
-
-    cc = [word.lower().strip().replace('ä', 'ae').replace('ü', 'ue').replace('ö', 'oe').replace('ß', 'ss') for _list
-      in group.data.values for word in _list]
-
-    with open('{}/wordclouds/topic_{}.txt'.format(args['path'], i), 'w', encoding='utf-8') as textfile:
-
-        textfile.write('\n'.join(cc))
-
-
-
+# timelines
 agg_lvl = args['agg_lvl']
 print(agg_lvl)
 out = data.copy()
@@ -123,6 +110,7 @@ for topic in out.gmm_top_topic.unique():
     # plt.show()
 
 
+# bhtnse
 print('Bhtsne..')
 Y = tsne(vectors, perplexity=args["tsne_perplexity"])
 pd.DataFrame(Y).to_csv('{}/bhtsne.csv'.format(args['path']))
@@ -131,8 +119,30 @@ plt.savefig('{}/bhtsne.svg'.format(args['path']), bbox_inches='tight')
 plt.savefig('{}/bhtsne.png'.format(args['path']), bbox_inches='tight')
 plt.close()
 
+
+
+print('Bhtsne with center..')
+Y = tsne(vecs_with_center.values, perplexity=args["tsne_perplexity"])
+pd.DataFrame(Y).to_csv('{}/bhtsne_with_center.csv'.format(args['path']))
+plt.scatter(Y[:len(vectors), 0], Y[:len(vectors), 1], s=2)
+plt.scatter(Y[len(vectors):, 0], Y[len(vectors):, 1], s=3, c='r', marker='x')
+plt.savefig('{}/bhtsne_with_center.svg'.format(args['path']), bbox_inches='tight')
+plt.savefig('{}/bhtsne_with_center.png'.format(args['path']), bbox_inches='tight')
+plt.close()
+
 # wordclouds
 print('wordclouds..')
+pvtm_utils.check_path('{}/wordclouds'.format(args['path']))
+
+topicgroup = data.groupby('gmm_top_topic')
+for i,group in topicgroup:
+
+    cc = [word.lower().strip().replace('ä', 'ae').replace('ü', 'ue').replace('ö', 'oe').replace('ß', 'ss') for _list
+      in group.data.values for word in _list]
+
+    with open('{}/wordclouds/topic_{}.txt'.format(args['path'], i), 'w', encoding='utf-8') as textfile:
+
+        textfile.write('\n'.join(cc))
 commands = ["RScript", "wordclouds.R", args['path']]
 subprocess.call(commands)
 
