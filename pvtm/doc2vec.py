@@ -1,5 +1,5 @@
-import glob
 import gensim
+import glob
 import os
 import pandas as pd
 # custom
@@ -25,22 +25,18 @@ def preprocess_documents(out, text_column='text'):
     return preprocessed
 
 
-def look_for_existing_lemmatized_dataset(path, filename):
-    relevant_file = path + '/' + filename
-
-    relevant_file_folder = os.path.split(relevant_file)[0]
-    files = glob.glob(relevant_file_folder)
-    print(files)
-
-    print('Looking for file ', relevant_file)
-    df = pd.read_csv(relevant_file)
-    print(df.shape)
-    print(df.head(1))
+def look_for_existing_lemmatized_dataset(filename):
+    _folder, _file = os.path.split(filename)
+    lemma_file = _folder + '/lemma_' + _file
+    print('Looking for file ', lemma_file)
+    df = pd.read_csv(lemma_file)
     return df.values.reshape(-1).tolist()
 
+
 def lemmatize(preprocessed, LANGUAGE, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE, OUTPUTPATH, FILENAME):
+
     try:
-        data = look_for_existing_lemmatized_dataset(OUTPUTPATH, FILENAME)
+        data = look_for_existing_lemmatized_dataset(FILENAME)
         print('found lemmatized dataset')
     except Exception as e:
         print(e)
@@ -48,14 +44,12 @@ def lemmatize(preprocessed, LANGUAGE, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE
         nlp = spacy.load(LANGUAGE)
         nlp.disable_pipes('tagger', 'ner')
         time0 = time.time()
-        data = pvtm_utils.spacy_lemmatizer(preprocessed, nlp, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE)
-        savepath = OUTPUTPATH + '/' + FILENAME
-        print(savepath)
-        savepath_folder = os.path.split(savepath)[0]
-        pvtm_utils.check_path(savepath_folder)
 
-        print(savepath)
-        pd.DataFrame(data).to_csv(savepath, index=False)
+        data = pvtm_utils.spacy_lemmatizer(preprocessed, nlp, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE)
+
+        _folder, _file = os.path.split(FILENAME)
+        lemma_file = _folder + '/lemma_' + _file
+        pd.DataFrame(data).to_csv(lemma_file, index=False)
         print("Lemmatization took ", time.time() - time0, "sec")
     return data
 
