@@ -5,7 +5,7 @@
 # import the necessary packages
 import argparse
 import os
-
+import json
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 # general
@@ -33,9 +33,9 @@ ap.add_argument("-lt", "--lemmathreads", default=-1, required=False, type=int,
                 help="Number of threads for the lemmatizer. Default = '-1'")
 ap.add_argument("-lbs", "--lemmabatchsize", default=300, required=False, type=int,
                 help="Batch size for lemmatizer. Default = '300'")
-ap.add_argument("-vmin", "--vectorizermin", default=2, required=False,
+ap.add_argument("-vmin", "--vectorizermin", default=2, required=False, type=int,
                 help="max number of documents in which a word has to appear to be considered. Default = 2")
-ap.add_argument("-vmax", "--vectorizermax", default=0.95, required=False,
+ap.add_argument("-vmax", "--vectorizermax", default=0.95, required=False, type=float,
                 help="max number of documents in which a word is allowed to appear to be considered. Default = 0.95")
 
 # gmm
@@ -52,7 +52,6 @@ ap.add_argument("-ntp", "--numtopicwords", default=50, required=False,
                 help="How many top words per topic to store. Default = 50")
 
 args = vars(ap.parse_args())
-args['gmmrange'] = range(args['gmmrange'][0], args['gmmrange'][1], args['gmmrange'][2])
 # display a friendly message to the user
 print("Use data: {}".format(os.path.abspath(args["input"])))
 
@@ -77,6 +76,11 @@ if __name__ == '__main__':
 
     pvtm_utils.check_path(args["output"])
 
+    # store settings to file for later reference
+    with open('{}/file.txt'.format(args['output']), 'w') as file:
+        file.write(json.dumps(args))  # use `json.loads` to do the reverse
+
+    args['gmmrange'] = range(args['gmmrange'][0], args['gmmrange'][1], args['gmmrange'][2])
     ###################################
     # # Load Model, Data and Stopwords
     ###################################
@@ -94,7 +98,8 @@ if __name__ == '__main__':
                                         args['vectorizermax'],
                                         args['vectorizermin'],
                                         args['lemmathreads'],
-                                        args['lemmabatchsize']
+                                        args['lemmabatchsize'],
+                                        args['output']
                                         )
 
     else:
