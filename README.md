@@ -36,7 +36,7 @@ python pvtm/pvtm.py -i data/sample_100.csv -o output
 which will  run the algorithm using a small text sample. Larger samples are available in the data folder.
 
 ## Usage
-
+```
 pvtm.py [-h] -i INPUT [-o OUTPUT] [-l LANGUAGE] [-d2vp D2V_MODEL]
                [-gmmp GMM_MODEL] [-e EPOCHS] [-d DIMENSION] [-lt LEMMATHREADS]
                [-lbs LEMMABATCHSIZE] [-vmin VECTORIZERMIN]
@@ -90,14 +90,13 @@ optional arguments:
   -ntp NUMTOPICWORDS, --numtopicwords NUMTOPICWORDS
                         How many top words per topic to store. Default = 50
 
+```
 
 
-
-Run
+To display the options use
 ```
 python pvtm/pvtm.py -help
 ```
-to see options.
 
 
 ## Visualizations
