@@ -1,11 +1,6 @@
 # Paragraph Vector Topic Model
 
-This project providers users the ability to do topic modeling with [Paragraph Vector Topic Models](https://www.uni-marburg.de/fb02/makro/forschung/magkspapers/paper_2018/15-2018_lenz.pdf).
-
-<img src="img/topic.png" height="350px" width="375px" align="left">
-<img src="img/timeline.png" height="350px" width="375px" >
-
-
+This project provides users the ability to do topic modeling with [Paragraph Vector Topic Models](https://www.uni-marburg.de/fb02/makro/forschung/magkspapers/paper_2018/15-2018_lenz.pdf).
 
 ## Installation
 
@@ -16,13 +11,13 @@ cd pvtm-core
 ```
 
 
-Install the required packages using pip
+Install the required packages using pip. To install all packages required for topic generation and visualization use
 ```
 pip install -r requirements.txt
 ```
-installs all packages required for topic generation and visualization.
 
-If you don't want the visualizations use
+
+If you don't want the visualizations (they need Inkscape, R and C++) use
 ```
 pip install -r requirements_light.txt
 ```
@@ -33,7 +28,7 @@ To verify correct setup, run the following:
 ```
 python pvtm/pvtm.py -i data/sample_100.csv -o output
 ```
-which will  run the algorithm using a small text sample. Larger samples are available in the data folder.
+This will  run the algorithm using a small text sample. Larger samples are available in the data folder.
 
 ## Usage
 ```
@@ -52,7 +47,7 @@ optional arguments:
                         Name of the folder where outputs are stored. Default =
                         './Output'
   -l LANGUAGE, --language LANGUAGE
-                        Language of the text documents used for lemmatization.
+                        Language used for lemmatization.
                         Default = 'en'
   -d2vp D2V_MODEL, --d2v_model D2V_MODEL
                         Provide a path to a folder where a Doc2Vec.model file
@@ -79,12 +74,12 @@ optional arguments:
   -gv GMMVERBOSE, --gmmverbose GMMVERBOSE
                         GMM verbosity during training. Default = 1
   -gi GMMNINITS, --gmmninits GMMNINITS
-                        GMM number of initializations per Component size.
+                        GMM number of initializations per component size.
                         Default = 2
   -gr start end step, --gmmrange start end step
                         specify a range
   -gcv GMMCVTYPES [GMMCVTYPES ...], --gmmcvtypes GMMCVTYPES [GMMCVTYPES ...]
-                        GMM covariance matrix constraints. Takes a values from
+                        GMM covariance matrix constraints. Takes values from
                         [spherical diag tied full]. Default =
                         ['spherical','diag','tied']
   -ntp NUMTOPICWORDS, --numtopicwords NUMTOPICWORDS
@@ -105,5 +100,13 @@ we can visualize the results using
 ```
 python pvtm/pvtm_vis.py -path output
 ```
+<img src="img/topic.png" height="350px" width="375px" align="left">
+<img src="img/timeline.png" height="300px" width="375px" >
+
+
 
 Note that the visualizations require Inkscape, R and a C++ compiler available through your systems path variable.
+
+## Citation
+
+## Acknowledgements
