@@ -101,12 +101,12 @@ we can visualize the results using
 python pvtm/pvtm_vis.py -path output
 ```
 <img src="img/topic.png" height="350px" width="375px" align="left">
-<img src="img/timeline.png" height="300px" width="375px" >
-
+<img src="img/timeline.png" height="300px" width="375px" align = "right">
 
 
 Note that the visualizations require Inkscape, R and a C++ compiler available through your systems path variable.
 
 ## Citation
-
+tba
 ## Acknowledgements
+tba
