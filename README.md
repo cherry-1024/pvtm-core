@@ -7,8 +7,7 @@ This project provides users the ability to do topic modeling with [Paragraph Vec
 
 <ul>
 <li> Gensim
-
-<\ul>
+</ul>
 
 
 ## Installation
