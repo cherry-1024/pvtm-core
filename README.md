@@ -2,6 +2,15 @@
 
 This project provides users the ability to do topic modeling with [Paragraph Vector Topic Models](https://www.uni-marburg.de/fb02/makro/forschung/magkspapers/paper_2018/15-2018_lenz.pdf).
 
+
+## Prerequisites
+
+<ul>
+<li> Gensim
+
+<\ul>
+
+
 ## Installation
 
 Pull the repo from github.
