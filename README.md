@@ -9,6 +9,12 @@ This project provides users the ability to do topic modeling with [Paragraph Vec
 <li> Gensim
 </ul>
 
+### Visualizations
+<ul>
+<li> R 
+<li> Inkscape 
+<li> C++
+</ul>
 
 ## Installation
 
