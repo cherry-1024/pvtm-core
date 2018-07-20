@@ -96,10 +96,10 @@ def get_documents_from_text(out, LANGUAGE, COUNTVECTORIZER_MAXDF, COUNTVECTORIZE
 
 def train_doc_2_vec(Doc2Vec_EPOCHS, EMBEDDING_DIM, documents, count, MODEL_SAVE_NAME):
     print('Initialize Model..')
-    model = Doc2Vec(size=EMBEDDING_DIM,
+    model = Doc2Vec(vector_size=EMBEDDING_DIM,
                     dbow_words=1,
                     dm=0,
-                    iter=1,
+                    epochs=1,
                     window=5,
                     seed=123,
                     min_count=5,

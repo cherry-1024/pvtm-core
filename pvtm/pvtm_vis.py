@@ -50,7 +50,7 @@ topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['path']))
 clf = joblib.load('{}/gmm.pkl'.format(args['path']))
 
 # docvecs 
-vectors = np.array(model.docvecs).astype('float64')
+vectors = np.array(model.docvecs.vectors_docs).astype('float64')
 vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(args['path']), sep='\t', index_col=0)
 
 
@@ -145,13 +145,9 @@ for i,group in topicgroup:
         textfile.write('\n'.join(cc))
 commands = ["RScript", "wordclouds.R", args['path']]
 subprocess.call(commands)
-<<<<<<< HEAD
 
+print('Clean wordcloud svgs')
 pvtm_utils.clean_svg(args['path'])
-print('Finished')
-=======
->>>>>>> 3cf8bb5273693c73f47d8e4beda58f36f160542f
-
 
 print('Wordclouds to png..')
 command = 'FOR %A IN ({}\wordclouds\*.svg) DO inkscape %A --export-png=%A.png --export-area-drawing -b "white" -d 800'.format(args['path'])
