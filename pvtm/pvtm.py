@@ -5,7 +5,7 @@
 # import the necessary packages
 import argparse
 import os
-
+import json
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 # general
@@ -17,10 +17,10 @@ ap.add_argument("-l", "--language", default="en", required=False,
                 help="Language of the text documents used for lemmatization. Default = 'en'")
 
 # d2v
-ap.add_argument("-d2vp", "--d2v-model", default="", required=False,
+ap.add_argument("-d2vp", "--d2v_model", default="", required=False,
                 help="Provide a path to a folder where a Doc2Vec.model file is stored. "
                      "No new model will be trained but the pre-trained model will be used instead.")
-ap.add_argument("-gmmp", "--gmm-model", default="", required=False,
+ap.add_argument("-gmmp", "--gmm_model", default="", required=False,
                 help="Provide a path to a folder where a gmm.pkl file is stored. "
                      "No new model will be trained but the pre-trained model will be used instead.")
 ap.add_argument("-e", "--epochs", default=10, required=False,
@@ -33,9 +33,9 @@ ap.add_argument("-lt", "--lemmathreads", default=-1, required=False, type=int,
                 help="Number of threads for the lemmatizer. Default = '-1'")
 ap.add_argument("-lbs", "--lemmabatchsize", default=300, required=False, type=int,
                 help="Batch size for lemmatizer. Default = '300'")
-ap.add_argument("-vmin", "--vectorizermin", default=2, required=False,
+ap.add_argument("-vmin", "--vectorizermin", default=2, required=False, type=int,
                 help="max number of documents in which a word has to appear to be considered. Default = 2")
-ap.add_argument("-vmax", "--vectorizermax", default=0.95, required=False,
+ap.add_argument("-vmax", "--vectorizermax", default=0.95, required=False, type=float,
                 help="max number of documents in which a word is allowed to appear to be considered. Default = 0.95")
 
 # gmm
@@ -76,24 +76,47 @@ if __name__ == '__main__':
 
     pvtm_utils.check_path(args["output"])
 
+    # store settings to file for later reference
+    with open('{}/file.txt'.format(args['output']), 'w') as file:
+        file.write(json.dumps(args))  # use `json.loads` to do the reverse
+
+    args['gmmrange'] = range(args['gmmrange'][0], args['gmmrange'][1], args['gmmrange'][2])
     ###################################
     # # Load Model, Data and Stopwords
     ###################################
-    # Load doc2vec model
-    model = doc2vec.Doc2Vec.load(args['d2v-model'] + '/doc2vec.model')
+    # Load the specified data into a dataframe, 'out',
+    # and load the trained Doc2Vec model(or train a new one, if NEW_Doc2Vec = 1).
+    # train a new model if specified, otherwise load pretrained model
+    if args['d2v_model'] == "":
+        print('Training New Doc2Vec Model.')
+        out, model = doc2vec.run_script(args["input"],
+                                        args['output'] + '/doc2vec.model',
+                                        args['output'] + '/documents.csv',
+                                        args['epochs'],
+                                        args['dimension'],
+                                        args['language'],
+                                        args['vectorizermax'],
+                                        args['vectorizermin'],
+                                        args['lemmathreads'],
+                                        args['lemmabatchsize'],
+                                        args['output']
+                                        )
 
-    # load document dataframe
-    out = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['output']),
-                                             ['gmm_topics', 'gmm_probas'])
+    else:
+        print('Using pre-trained Doc2Vec Model.')
+        model = doc2vec.Doc2Vec.load(args['d2v_model'] + '/doc2vec.model')
 
-    # load topics dataframe
-    topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['output']))
+        # load document dataframe
+        out = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['output']),
+                                                 ['gmm_topics', 'gmm_probas'])
+        if args['gmm_model'] != "":
+            print('Loading Topic Dataframe.')
+            topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['output']))
+            clf = joblib.load('{}/gmm.pkl'.format(args['gmm_model']))
 
-    # load gmm model
-    clf = joblib.load('{}/gmm.pkl'.format(args['gmm-model']))
-
-    # docvecs
+    # store the DocVecs to tsv
     vectors = np.array(model.docvecs)
+    pd.DataFrame(vectors).to_csv('{}/vectors.tsv'.format(args['output']), sep='\t', header=False)
 
     # Detect the language of the documents and load the respective stopwords
     vocab = list(model.wv.vocab.keys())
@@ -102,7 +125,7 @@ if __name__ == '__main__':
     print('Document Df: ', out.shape)
     print('Vectors: ', vectors.shape)
 
-    if 'gmm-model' not in args.keys():
+    if args['gmm_model'] == "":
         # ## GMM for Topic clustering
         #
         # We use a Gaussian Mixture Model to cluster the Document Vectors learned by the Doc2Vec model into soft topics.
@@ -161,13 +184,13 @@ if __name__ == '__main__':
 
         """
         # Topic labeling
-    
+
         Here the found clusters/topics are labelled in different ways.
-    
+
         - The 'num_words' most frequent words found in the articles, stopwordssss excluded, are used to label the topic.
         - The most similar words to the embedding vector of each cluster center are used to further describe the cluster.
         - The most similar documents to the embedding vector of each cluster center get appended.
-    
+
         The resulting dataframe, 'topics', holds a row for every cluster/topic with the described information.
         """
 

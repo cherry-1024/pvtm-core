@@ -6,7 +6,7 @@
 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j','k','l','m','n','o','p','q','r','s','t',
 "usw", "hinsichtlich", "proz", "mill", "einzelnen", "deutschen", "fast", "Anderseits",
 "wirtschaftlichen", "verf", "hrsg", "deutschland", "etc", "Zweifellos", "letzten", "bzw", "jahres",
-"zeigt", "Vorjahres", "proz", "dr", "gr", "einzelnen", "heft", "bzw", "vgl", "läßt", "Zahl",
+"zeigt", "Vorjahres", "proz", "dr", "gr", "einzelnen", "heft", "bzw", "vgl", "läßt", "Zahl","jahre", 
 "Jahren", "R.", "A.", "S.", "Gr", "Ga", "D.", "n.", "K.", "ltd", "wesentlich", "co", "stark","prevpage",
 "z.B.", "b.H.", "III", "J.", "dz", "mk", "jahres", "L.", "No", "A", "Bd.", "jim", "viii", "liefert",
 "verf", "K.", "Verfassers", "D.", "Dr.", "R.", "C.", "E.", "I", "II", "III", "IV", "V", "VI", "VII",
