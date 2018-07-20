@@ -485,6 +485,38 @@ def get_top_n_trending_topics(imp_per_my, k_timesteps, column, nlargest=10):
 
 
 
+def svg_to_pdf(in_path):
+    out_path = in_path[:-4] + '.pdf'
+    print('create pdf :', out_path)
+    # svg to pdf
+    drawing = svg2rlg(in_path)
+    renderPDF.drawToFile(drawing, out_path)
+
+
+
+def load_pvtm_outputs(path):
+    """
+    Load all relevant outputs from PVTM.
+    This includes the doc2vec model, gmm model, topics dataframe and the documents dataframe.
+    """
+
+    # Load doc2vec model
+    model = doc2vec.Doc2Vec.load(path + '/doc2vec.model')
+
+    # load document dataframe
+    data = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(path),
+                                              ['gmm_topics', 'gmm_probas'])
+
+    # load topics dataframe
+    topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(path))
+
+    # load gmm model
+    gmm = joblib.load('{}/gmm.pkl'.format(path))
+
+    # docvecs
+    vectors = np.array(model.docvecs.vectors_docs).astype('float64')
+    vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(path), sep='\t', index_col=0)
+    return model, gmm, data, topics
 
 def spacy_lemmatizer(text, nlp, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE):
     """
