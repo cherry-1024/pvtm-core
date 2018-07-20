@@ -135,6 +135,8 @@ plt.close()
 print('wordclouds..')
 commands = ["RScript", "wordclouds.R", args['path']]
 subprocess.call(commands)
+
+pvtm_utils.clean_svg(args['path'])
 print('Finished')
 
 
