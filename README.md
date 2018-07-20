@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 3cf8bb5273693c73f47d8e4beda58f36f160542f
 # Paragraph Vector Topic Model
 
 This project provides users the ability to do topic modeling with [Paragraph Vector Topic Models](https://www.uni-marburg.de/fb02/makro/forschung/magkspapers/paper_2018/15-2018_lenz.pdf).
@@ -112,7 +108,7 @@ we can visualize the results using
 ```
 python pvtm/pvtm_vis.py -path output
 ```
-<<<<<<< HEAD
+
 
 Note that the visualizations require an R installation which also needs to be in your system path.
 =======
@@ -163,8 +159,7 @@ python pvtm/pvtm_vis.py -path <path-to-folder>
 ```
 
 Note that the visualizations require an R installation which also needs to be in your system path.
->>>>>>> 588749c34b8acf10dc00b48d3e82173308ce475d
-=======
+
 <br>
 <img src="img/topic.png" height="350px" width="375px" align="left">
 <img src="img/timeline.png" height="300px" width="375px" align = "center">
@@ -177,4 +172,4 @@ Note that the visualizations require Inkscape, R and a C++ compiler available th
 tba
 ## Acknowledgements
 tba
->>>>>>> 3cf8bb5273693c73f47d8e4beda58f36f160542f
+
