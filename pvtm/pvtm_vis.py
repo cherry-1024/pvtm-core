@@ -145,6 +145,12 @@ for i,group in topicgroup:
         textfile.write('\n'.join(cc))
 commands = ["RScript", "wordclouds.R", args['path']]
 subprocess.call(commands)
+<<<<<<< HEAD
+
+pvtm_utils.clean_svg(args['path'])
+print('Finished')
+=======
+>>>>>>> 3cf8bb5273693c73f47d8e4beda58f36f160542f
 
 
 print('Wordclouds to png..')

@@ -34,6 +34,13 @@ def preprocess_document(text):
     return ''.join([x if x.isalnum() or x.isspace() else " " for x in text]).split()
 
 
+
+def clean_svg(path):
+    files = glob.glob(path + '*.svg')
+    for file in files:
+        subprocess.call('scour -i {} -o {} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none'.format(file, file))
+
+
 class Documents(object):
     """
 
