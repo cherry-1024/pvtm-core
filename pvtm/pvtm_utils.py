@@ -1,3 +1,4 @@
+import gensim
 import ast
 import datetime
 import glob
@@ -501,7 +502,7 @@ def load_pvtm_outputs(path):
     """
 
     # Load doc2vec model
-    model = doc2vec.Doc2Vec.load(path + '/doc2vec.model')
+    model = gensim.models.doc2vec.Doc2Vec.load(path + '/doc2vec.model')
 
     # load document dataframe
     data = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(path),
