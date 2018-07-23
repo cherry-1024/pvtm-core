@@ -23,9 +23,9 @@ ap.add_argument("-d2vp", "--d2v_model", default="", required=False,
 ap.add_argument("-gmmp", "--gmm_model", default="", required=False,
                 help="Provide a path to a folder where a gmm.pkl file is stored. "
                      "No new model will be trained but the pre-trained model will be used instead.")
-ap.add_argument("-e", "--epochs", default=10, required=False,
+ap.add_argument("-e", "--epochs", default=10, required=False, type=int,
                 help="Doc2Vec number epochs. Default = 10")
-ap.add_argument("-d", "--dimension", default=100, required=False,
+ap.add_argument("-d", "--dimension", default=100, required=False, type=int,
                 help="Doc2Vec embedding dimension. Default = 100")
 
 # preprocessing
@@ -115,7 +115,7 @@ if __name__ == '__main__':
             clf = joblib.load('{}/gmm.pkl'.format(args['gmm_model']))
 
     # store the DocVecs to tsv
-    vectors = np.array(model.docvecs)
+    vectors = np.array(model.docvecs.vectors_docs)
     pd.DataFrame(vectors).to_csv('{}/vectors.tsv'.format(args['output']), sep='\t', header=False)
 
     # Detect the language of the documents and load the respective stopwords

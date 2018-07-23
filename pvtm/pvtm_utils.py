@@ -1,4 +1,5 @@
 import gensim
+from sklearn.externals import joblib
 import ast
 import datetime
 import glob
@@ -10,12 +11,13 @@ import pandas as pd
 import random
 import re
 import spacy
-import stopwords_generator
+# import stopwords_generator
 import subprocess
 import time
 from collections import Counter
 from gensim.models.doc2vec import TaggedDocument, Doc2Vec
-
+from reportlab.graphics import renderPDF
+from svglib.svglib import svg2rlg
 
 def preprocess(str):
     """
@@ -149,7 +151,6 @@ def extract_time_info(infodf, datefield):
     infodf['time'] = infodf[datefield].dt.time
     infodf['year'] = infodf[datefield].dt.year
     infodf['day'] = infodf[datefield].dt.ceil('D')
-
     infodf['week'] = infodf[datefield].dt.to_period('W').dt.to_timestamp()
     infodf['month'] = infodf[datefield].dt.to_period('M').dt.to_timestamp()
     infodf['quarter'] = infodf[datefield].dt.to_period('Q').dt.to_timestamp()
@@ -376,7 +377,7 @@ def sort_date_string(L):
         return L
 
 
-def get_topic_importance_df(level_of_aggregation, out):
+def get_topic_importance_df(level_of_aggregation, out, datefield='date'):
     """
     Aggregate the probabilities over all Documents wrt their topics given time granularity, for example 'year', 'quarter_year' or 'month_year'.
     Returns df with one row per time granularity (one row per year for instance) and one column per topic with the aggregated importance.
@@ -385,6 +386,11 @@ def get_topic_importance_df(level_of_aggregation, out):
 
     # get the topic probabilites on document level from the out dataframe
     # turn them into a df with one column per topic and num documents number of rows
+
+
+    out[datefield] = out[datefield].apply(pd.to_datetime, errors='coerce')
+    out = extract_time_info(out, datefield=datefield)
+
     probas = out.gmm_probas.apply(pd.Series)
 
     # join the respective time aggregation level from the out dataframe
@@ -505,11 +511,11 @@ def load_pvtm_outputs(path):
     model = gensim.models.doc2vec.Doc2Vec.load(path + '/doc2vec.model')
 
     # load document dataframe
-    data = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(path),
+    data = load_document_dataframe('{}/documents.csv'.format(path),
                                               ['gmm_topics', 'gmm_probas'])
 
     # load topics dataframe
-    topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(path))
+    topics = load_topics_dataframe('{}/topics.csv'.format(path))
 
     # load gmm model
     gmm = joblib.load('{}/gmm.pkl'.format(path))
@@ -517,7 +523,7 @@ def load_pvtm_outputs(path):
     # docvecs
     vectors = np.array(model.docvecs.vectors_docs).astype('float64')
     vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(path), sep='\t', index_col=0)
-    return model, gmm, data, topics
+    return model, gmm, data, topics#, vectors, vecs_with_center
 
 def spacy_lemmatizer(text, nlp, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE):
     """

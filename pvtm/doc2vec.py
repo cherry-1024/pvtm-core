@@ -113,8 +113,7 @@ def train_doc_2_vec(Doc2Vec_EPOCHS, EMBEDDING_DIM, documents, count, MODEL_SAVE_
     losses = []
     for epoch in range(Doc2Vec_EPOCHS):
         print("epoch " + str(epoch))
-        model.train(documents, total_examples=count, epochs=1, compute_loss=True)
-        losses.append(model.get_latest_training_loss())
+        model.train(documents, total_examples=count, epochs=1)
         model.save(MODEL_SAVE_NAME)
         model.alpha -= 0.002  # decrease the learning rate
         model.min_alpha = model.alpha  # fix the learning rate, no decay
