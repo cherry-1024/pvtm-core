@@ -1,10 +1,12 @@
 import itertools
+import time
+import time
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import time
-import time
+import pvtm_utils
 from scipy import linalg
 from sklearn import mixture
 from sklearn.cluster import KMeans, MeanShift
@@ -120,7 +122,7 @@ def add_gmm_probas_to_out(out, vectors, clf):
     return out, GMM_N_COMPONENTS
 
 
-def plot_BIC(bic, N_COMPONENTS_RANGE, CV_TYPES):
+def plot_BIC(bic, N_COMPONENTS_RANGE, CV_TYPES, args):
     import pandas as pd
     bic_scores_df = pd.DataFrame(bic.reshape(-1, len(N_COMPONENTS_RANGE))).T
     bic_scores_df.columns = CV_TYPES
@@ -134,7 +136,9 @@ def plot_BIC(bic, N_COMPONENTS_RANGE, CV_TYPES):
     plttmp = bic_scores_df.plot(kind='bar', figsize=(24, 4), title='A')
     fig = plttmp.get_figure()
     plt.grid()
-    # plt.savefig('{}'.format(FILENAME))
+    plt.savefig('{}/BIC_scores.svg'.format(args['output']), bbox_inches='tight')
+    plt.savefig('{}/BIC_scores.png'.format(args['output']), bbox_inches='tight')
+    pvtm_utils.svg_to_pdf('{}/BIC_scores.svg'.format(args['output']))
     plt.clf()
 
 

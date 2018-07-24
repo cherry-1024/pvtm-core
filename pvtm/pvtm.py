@@ -33,10 +33,10 @@ ap.add_argument("-lt", "--lemmathreads", default=-1, required=False, type=int,
                 help="Number of threads for the lemmatizer. Default = '-1'")
 ap.add_argument("-lbs", "--lemmabatchsize", default=300, required=False, type=int,
                 help="Batch size for lemmatizer. Default = '300'")
-ap.add_argument("-vmin", "--vectorizermin", default=2, required=False, type=int,
-                help="max number of documents in which a word has to appear to be considered. Default = 2")
-ap.add_argument("-vmax", "--vectorizermax", default=0.95, required=False, type=float,
-                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.95")
+ap.add_argument("-vmin", "--vectorizermin", default=0.05, required=False, type=float,
+                help="max number of documents in which a word has to appear to be considered. Default = 0.25")
+ap.add_argument("-vmax", "--vectorizermax", default=0.5, required=False, type=float,
+                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.75")
 
 # gmm
 ap.add_argument("-gv", "--gmmverbose", default=1, required=False,
@@ -137,7 +137,7 @@ if __name__ == '__main__':
                                                       args['gmmverbose'])
 
         # plot the results from the optimization
-        clustering.plot_BIC(bic, args['gmmrange'], args['gmmcvtypes'])
+        clustering.plot_BIC(bic, args['gmmrange'], args['gmmcvtypes'], args)
         print(args['gmmrange'])
 
         # parameters of the best gmm
