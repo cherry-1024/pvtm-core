@@ -35,17 +35,12 @@ documents = pd.read_csv( args['input']+'/documents.csv')
 topics= list(range(0,max(documents['gmm_top_topic'])+1))
 timelines_df = pd.read_csv( args['input']+'/timelines_df.csv', index_col='Unnamed: 0')
 
-# Mean Probability of Topics
-mean_probs=[]
-for topic in topics:
-    topic=str(topic)
-    value=np.mean(timelines_df[topic].ewm(span=3).mean().values)
-    mean_probs.append(value)
 
 # Scatter Plot
 bhtsne = pd.read_csv(args['input']+'/bhtsne.csv', names=['x', 'y'])
+bhtsne_3d = pd.read_csv(args['input']+'/bhtsne_3d.csv', names=['x','y','z'])
 out = documents.copy()
-out = out.join(bhtsne)
+out = out.join(bhtsne_3d)
 traces = []
 unique_topics = documents.gmm_top_topic.unique()
 for topic in range(len(unique_topics)):
@@ -54,6 +49,7 @@ for topic in range(len(unique_topics)):
     tmp = out[out.gmm_top_topic == topic]
     x = tmp['x'].values
     y = tmp['y'].values
+    z = tmp['z'].values
     titles = tmp['title'].values
     texts = tmp['text'].values
     texts = ['{} ...'.format(text[:100]) for text in texts]
@@ -68,9 +64,10 @@ for topic in range(len(unique_topics)):
                        sources[i],
                        texts[i])
               for i in range(len(titles))]
-    trace = go.Scattergl(
+    trace = go.Scatter3d(
         x = x,
         y = y,
+        z= z,
         customdata = topic,
         text = labels,
         name = 'Topic {}'.format(topic),
@@ -99,7 +96,7 @@ app.layout = html.Div(children=[
     dcc.Graph(id='mean_probs',
               figure={
                   'data': [
-                      {'x': topics, 'y': mean_probs, 'type': 'bar'},
+                      {'x': topics, 'y': timelines_df.mean().values, 'type': 'bar'},
                   ]
               }
               ),
@@ -149,7 +146,7 @@ def update_timeline(topic):
         # dates = pd.DatetimeIndex(imp_per_my[topic].ewm(span=3).mean().index.values)
         #  X = dates.year
         X = timelines_df.index
-        Y = timelines_df[topic].ewm(span=3).mean().values
+        Y = timelines_df[topic].ewm(span=5).mean().values
         X1= timelines_df.index
         Y1= np.repeat(1/max(topics), len(X1))
         X2 = timelines_df.index
