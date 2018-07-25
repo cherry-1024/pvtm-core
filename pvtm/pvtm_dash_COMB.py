@@ -34,11 +34,59 @@ args = vars(ap.parse_args())
 documents = pd.read_csv( args['input']+'/documents.csv')
 topics= list(range(0,max(documents['gmm_top_topic'])+1))
 timelines_df = pd.read_csv( args['input']+'/timelines_df.csv', index_col='Unnamed: 0')
-app = dash.Dash()
+# Scatter Plot
+bhtsne = pd.read_csv(args['input']+'/bhtsne.csv', names=['x', 'y'])
+out = documents.copy()
+out = out.join(bhtsne)
+traces = []
+unique_topics = documents.gmm_top_topic.unique()
+for topic in range(len(unique_topics)):
+    r = lambda:  random.randint(0, 255)
+    colorhex = '#%02X%02X%02X' % (r(), r(), r())
+    tmp = out[out.gmm_top_topic == topic]
+    x = tmp['x'].values
+    y = tmp['y'].values
+    titles = tmp['title'].values
+    texts = tmp['text'].values
+    texts = ['{} ...'.format(text[:100]) for text in texts]
+    sources = tmp['source'].values
+    labels = ["""
+            Topic: {} <br>
+            Title: {} <br>
+            Source: {} <br>
+            Text sample: {} <br>
+            """.format(topic,
+                       titles[i],
+                       sources[i],
+                       texts[i])
+              for i in range(len(titles))]
+    trace = go.Scattergl(
+        x = x,
+        y = y,
+        customdata = topic,
+        text = labels,
+        name = 'Topic {}'.format(topic),
+        mode = 'markers',
+        marker = dict(
+            color = colorhex,
+            line = dict(width = 1)
+        )
+    )
+    traces.append(trace)
+scatter = {
+        'data' : traces ,
+        'layout': {'height': 800,
+                   'width' : 1000,
+                   'hovermode' : 'closest'},
+}
+
 
 app = dash.Dash()
+
 app.layout = html.Div(children=[
     html.H1('PVTM Results', style={'textAlign': 'center','background-color': '#7FDBFF'}),
+    html.H2('Topic Explorer', style={'textAlign': 'center', 'color': '#1C4E80'}),
+    dcc.Graph(id='scatter', figure=scatter),
     dcc.Slider(
         id ='topic-slider',
         min = 0,
