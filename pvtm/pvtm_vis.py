@@ -38,10 +38,8 @@ print(args)
 
 
 def timelines(data, args):
-    # if args.timelines or not(args.timeline or args.bhtsne or args.wordclouds):
-    print('timelines')
-    # timelines
 
+    print('timelines')
     data.date = data.date.apply(lambda x: pd.to_datetime(x, errors='coerce'))
     data = pvtm_utils.extract_time_info(data, 'date')
 
@@ -49,41 +47,31 @@ def timelines(data, args):
     topic_importance_df = pvtm_utils.get_topic_importance_df(args['agg_lvl'], data)
     topic_importance_df.to_csv('{}/timelines_df.csv'.format(args['path']))
 
-    imp_per_my = topic_importance_df.copy()
-    mean_of_means = imp_per_my.mean().mean()
+    mean_of_means = topic_importance_df.mean().mean()
 
     savepath = '{}/topics/timelines'.format(args['path'])
     print('Store timelines in folder:', savepath)
     pvtm_utils.check_path(savepath)
 
     for topic in data.gmm_top_topic.unique():
-        plt.plot(imp_per_my[topic].mean(), c='b', label='Mean Probability current Topic', linestyle=':')
+        topic_importance_df.loc[:, topic].ewm(span=3).mean().plot(label='Probability', linestyle=':')
+        plt.axhline(topic_importance_df[topic].mean(), c='b', label='Mean Probability current Topic', linestyle=':')
         plt.axhline(mean_of_means, c='r', label='Mean Probability all Topics', linestyle='--')
-
-        imp_per_my[topic].plot(label='Probability', linestyle=':')
 
         plt.plot(np.nan, '-g', label='Number of Documents (right)')  # Make an agent for the twinx axis
         plt.legend(loc='best', prop={'size': 8})
         plt.title('Topic importance over time. Topic: {}'.format(topic))
         plt.grid()
 
-        ##################
-        # absolute articles timeline
-        ##################
-
-        granulars = data.sort_values('date')[args['agg_lvl']].unique()
+        timesteps = data.sort_values('date')[args['agg_lvl']].unique()
         _list = [
             pvtm_utils.show_topics_per_choosen_granularity(data, 'gmm_top_topic', [topic], args['agg_lvl'], granular)
-            for granular in granulars]
+            for granular in timesteps]
         df = pd.concat(_list).fillna(0)
-        # df.index = new_index
 
         ax2 = plt.twinx()
-        ax2.plot(df, c='g', label='Number of Documents', linestyle='--')
-        plt.xlim(imp_per_my.index[0], imp_per_my.index[-1])
-        #     plt.grid()
-        #     plt.gca().set_position([0, 0, 1, 1])
-
+        ax2.plot(df.ewm(span=3).mean(), c='g', label='Number of Documents', linestyle='--')
+        plt.xlim(topic_importance_df.index[0], topic_importance_df.index[-1])
 
         file_name = 'timeline_Topic_{}'.format(topic)
         plt.savefig('{}/topics/timelines/{}.svg'.format(args['path'], file_name), bbox_inches='tight')
