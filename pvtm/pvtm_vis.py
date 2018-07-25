@@ -10,6 +10,8 @@ import pandas as pd
 # custom functions
 import pvtm_utils
 from bhtsne import tsne
+from matplotlib import pyplot
+from mpl_toolkits.mplot3d import Axes3D
 from reportlab.graphics import renderPDF
 from sklearn.externals import joblib
 from svglib.svglib import svg2rlg
@@ -63,19 +65,13 @@ def timelines(data, args):
     # if args.timelines or not(args.timeline or args.bhtsne or args.wordclouds):
     print('timelines')
     # timelines
-    agg_lvl = args['agg_lvl']
-    print(agg_lvl)
-    out = data.copy()
 
-    out.date = out.date.apply(lambda x: pd.to_datetime(x, errors='coerce'))
-    out = pvtm_utils.extract_time_info(out, 'date')
+    data.date = data.date.apply(lambda x: pd.to_datetime(x, errors='coerce'))
+    data = pvtm_utils.extract_time_info(data, 'date')
 
     print('Extracted datetime information, starting topic importance aggregation..')
-    topic_importance_df = pvtm_utils.get_topic_importance_df(agg_lvl, out)
-    # new_index = pd.DatetimeIndex([pd.to_datetime('{}-01-01'.format(t)) for t in topic_importance_df.index.values])
-    # topic_importance_df.index = new_index
-    #
-    # top_n_trending_topics = pvtm_utils.get_top_n_trending_topics(topic_importance_df, 1, 'gmm_top_topic')
+    topic_importance_df = pvtm_utils.get_topic_importance_df(args['agg_lvl'], data)
+    topic_importance_df.to_csv('{}/timelines_df.csv'.format(args['path']))
 
     imp_per_my = topic_importance_df.copy()
     mean_of_means = imp_per_my.mean().mean()
@@ -84,8 +80,8 @@ def timelines(data, args):
     print('Store timelines in folder:', savepath)
     pvtm_utils.check_path(savepath)
 
-    for topic in out.gmm_top_topic.unique():
-        plt.axhline(imp_per_my[topic].mean(), c='b', label='Mean Probability current Topic', linestyle=':')
+    for topic in data.gmm_top_topic.unique():
+        plt.plot(imp_per_my[topic].mean(), c='b', label='Mean Probability current Topic', linestyle=':')
         plt.axhline(mean_of_means, c='r', label='Mean Probability all Topics', linestyle='--')
 
         imp_per_my[topic].plot(label='Probability', linestyle=':')
@@ -99,9 +95,10 @@ def timelines(data, args):
         # absolute articles timeline
         ##################
 
-        granulars = out.sort_values('date')[agg_lvl].unique()
-        _list = [pvtm_utils.show_topics_per_choosen_granularity(out, 'gmm_top_topic', [topic], agg_lvl, granular)
-                 for granular in granulars]
+        granulars = data.sort_values('date')[args['agg_lvl']].unique()
+        _list = [
+            pvtm_utils.show_topics_per_choosen_granularity(data, 'gmm_top_topic', [topic], args['agg_lvl'], granular)
+            for granular in granulars]
         df = pd.concat(_list).fillna(0)
         # df.index = new_index
 
@@ -128,6 +125,7 @@ def bhtsne(vectors, vecs_with_center, args):
     plt.scatter(Y[:, 0], Y[:, 1], s=0.3)
     plt.savefig('{}/bhtsne.svg'.format(args['path']), bbox_inches='tight')
     plt.savefig('{}/bhtsne.png'.format(args['path']), bbox_inches='tight')
+    pd.DataFrame(Y).to_csv('{}/bhtsne_2d.csv'.format(args['path']))
     pvtm_utils.svg_to_pdf('{}/bhtsne.svg'.format(args['path']))
     plt.close()
 
@@ -138,13 +136,54 @@ def bhtsne(vectors, vecs_with_center, args):
     plt.scatter(Y[len(vectors):, 0], Y[len(vectors):, 1], s=0.8, c='r', marker='x')
     plt.savefig('{}/bhtsne_with_center.svg'.format(args['path']), bbox_inches='tight')
     plt.savefig('{}/bhtsne_with_center.png'.format(args['path']), bbox_inches='tight')
+    pd.DataFrame(Y).to_csv('{}/bhtsne_with_center_2d.csv'.format(args['path']))
+
     pvtm_utils.svg_to_pdf('{}/bhtsne_with_center.svg'.format(args['path']))
     plt.close()
 
+    print('3D tsne...')
+
+    Y = tsne(vectors, dimensions=3, perplexity=args["tsne_perplexity"])
+    fig = pyplot.figure(frameon=False, figsize=(8, 5))
+    ax = Axes3D(fig)
+
+    ax.scatter(Y[:, 0], Y[:, 1], Y[:, 2], s=1, c='b', marker='^')
+    ax.scatter(Y[:, 0], Y[:, 1], Y[:, 2], s=20, c='r', marker='^')
+    # pyplot.axis('off')
+    xmax, ymax, zmax = Y[:len(vectors), 0].max(), Y[:len(vectors), 1].max(), Y[:len(vectors), 2].max()
+    xmin, ymin, zmin = Y[:len(vectors), 0].min(), Y[:len(vectors), 1].min(), Y[:len(vectors), 2].min()
+
+    ax.set_xlim(xmin + 4, xmax - 4)
+    ax.set_ylim(ymin + 4, ymax - 4)
+    ax.set_zlim(zmin + 4, zmax - 4)
+    pyplot.savefig('{}/bhtsne.svg'.format(args['path']), bbox_inches='tight')
+    pyplot.savefig('{}/bhtsne.png'.format(args['path']), bbox_inches='tight')
+    pvtm_utils.svg_to_pdf('3d.svg')
+
+    pd.DataFrame(Y).to_csv('{}/bhtsne_3d.csv'.format(args['path']))
+
+    Y = tsne(vecs_with_center.values, dimensions=3, perplexity=args["tsne_perplexity"])
+    fig = pyplot.figure(frameon=False, figsize=(8, 5))
+    ax = Axes3D(fig)
+
+    ax.scatter(Y[:len(vectors), 0], Y[:len(vectors), 1], Y[:len(vectors), 2], s=1, c='b', marker='^')
+    ax.scatter(Y[len(vectors):, 0], Y[len(vectors):, 1], Y[len(vectors):, 2], s=20, c='r', marker='^')
+    # pyplot.axis('off')
+    xmax, ymax, zmax = Y[:len(vectors), 0].max(), Y[:len(vectors), 1].max(), Y[:len(vectors), 2].max()
+    xmin, ymin, zmin = Y[:len(vectors), 0].min(), Y[:len(vectors), 1].min(), Y[:len(vectors), 2].min()
+
+    ax.set_xlim(xmin + 4, xmax - 4)
+    ax.set_ylim(ymin + 4, ymax - 4)
+    ax.set_zlim(zmin + 4, zmax - 4)
+    pyplot.savefig('{}/bhtsne_with_center_3d.svg'.format(args['path']), bbox_inches='tight')
+    pyplot.savefig('{}/bhtsne_with_center_3d.png'.format(args['path']), bbox_inches='tight')
+    pvtm_utils.svg_to_pdf('3d.svg')
+
+    pd.DataFrame(Y).to_csv('{}/bhtsne_with_center_3d.csv'.format(args['path']))
+
 
 def wordclouds(data, args):
-    # if args.wordclouds or not(args.timeline or args.bhtsne or args.wordclouds):
-    # wordclouds
+
     print('wordclouds..')
     pvtm_utils.check_path('{}/wordclouds'.format(args['path']))
 
@@ -155,25 +194,29 @@ def wordclouds(data, args):
 
         with open('{}/wordclouds/topic_{}.txt'.format(args['path'], i), 'w', encoding='utf-8') as textfile:
             textfile.write('\n'.join(cc))
+
+    # create pdf wordclouds
     commands = ["RScript", "wordclouds.R", args['path']]
     subprocess.call(commands)
 
-    print('Clean wordcloud svgs')
-    pvtm_utils.clean_svg(args['path'])
+    print('Wordclouds to svg..')
+    command = 'FOR %A IN ({}\wordclouds\*.pdf) DO inkscape %A --export-plain-svg=%A.svg --export-area-drawing'.format(
+        args['path'])
+    os.system(command=command)
 
     print('Wordclouds to png..')
-    command = 'FOR %A IN ({}\wordclouds\*.svg) DO inkscape %A --export-png=%A.png --export-area-drawing -b "white" -d 800'.format(
+    command = 'FOR %A IN ({}\wordclouds\*.pdf) DO inkscape %A --export-png=%A.png --export-area-drawing -b "white" -d 800'.format(
         args['path'])
     os.system(command=command)
 
 
-if parsed_args.timelines or not(parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
+if parsed_args.timelines or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
     timelines(data, args)
 
-if parsed_args.bhtsne or not(parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
+if parsed_args.bhtsne or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
     bhtsne(vectors, vecs_with_center, args)
 
-if parsed_args.wordclouds or not(parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
+if parsed_args.wordclouds or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
     wordclouds(data, args)
 
 print('Finished')
