@@ -156,9 +156,9 @@ def bhtsne(vectors, vecs_with_center, args):
     ax.set_xlim(xmin + 4, xmax - 4)
     ax.set_ylim(ymin + 4, ymax - 4)
     ax.set_zlim(zmin + 4, zmax - 4)
-    pyplot.savefig('{}/bhtsne.svg'.format(args['path']), bbox_inches='tight')
-    pyplot.savefig('{}/bhtsne.png'.format(args['path']), bbox_inches='tight')
-    pvtm_utils.svg_to_pdf('3d.svg')
+    pyplot.savefig('{}/bhtsne_3d.svg'.format(args['path']), bbox_inches='tight')
+    pyplot.savefig('{}/bhtsne_3d.png'.format(args['path']), bbox_inches='tight')
+    pvtm_utils.svg_to_pdf('{}/bhtsne_3d.svg'.format(args['path']))
 
     pd.DataFrame(Y).to_csv('{}/bhtsne_3d.csv'.format(args['path']))
 
@@ -177,7 +177,7 @@ def bhtsne(vectors, vecs_with_center, args):
     ax.set_zlim(zmin + 4, zmax - 4)
     pyplot.savefig('{}/bhtsne_with_center_3d.svg'.format(args['path']), bbox_inches='tight')
     pyplot.savefig('{}/bhtsne_with_center_3d.png'.format(args['path']), bbox_inches='tight')
-    pvtm_utils.svg_to_pdf('3d.svg')
+    pvtm_utils.svg_to_pdf('{}/bhtsne_with_center_3d.svg'.format(args['path']))
 
     pd.DataFrame(Y).to_csv('{}/bhtsne_with_center_3d.csv'.format(args['path']))
 
