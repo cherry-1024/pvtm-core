@@ -34,6 +34,14 @@ args = vars(ap.parse_args())
 documents = pd.read_csv( args['input']+'/documents.csv')
 topics= list(range(0,max(documents['gmm_top_topic'])+1))
 timelines_df = pd.read_csv( args['input']+'/timelines_df.csv', index_col='Unnamed: 0')
+
+# Mean Probability of Topics
+mean_probs=[]
+for topic in topics:
+    topic=str(topic)
+    value=np.mean(timelines_df[topic].ewm(span=3).mean().values)
+    mean_probs.append(value)
+
 # Scatter Plot
 bhtsne = pd.read_csv(args['input']+'/bhtsne.csv', names=['x', 'y'])
 out = documents.copy()
@@ -87,6 +95,14 @@ app.layout = html.Div(children=[
     html.H1('PVTM Results', style={'textAlign': 'center','background-color': '#7FDBFF'}),
     html.H2('Topic Explorer', style={'textAlign': 'center', 'color': '#1C4E80'}),
     dcc.Graph(id='scatter', figure=scatter),
+    html.H2('Mean Topic Probability', style={'textAlign': 'center', 'color': '#1C4E80'}),
+    dcc.Graph(id='mean_probs',
+              figure={
+                  'data': [
+                      {'x': topics, 'y': mean_probs, 'type': 'bar'},
+                  ]
+              }
+              ),
     dcc.Slider(
         id ='topic-slider',
         min = 0,
