@@ -37,30 +37,6 @@ print("Use data: {}".format(os.path.abspath(args["path"])))
 print(args)
 
 
-def svg_to_pdf(in_path, out_path):
-    # svg to pdf
-    drawing = svg2rlg(in_path)
-    renderPDF.drawToFile(drawing, out_path)
-
-
-# Load doc2vec model
-model = doc2vec.Doc2Vec.load(args['path'] + '/doc2vec.model')
-
-# load document dataframe
-data = pvtm_utils.load_document_dataframe('{}/documents.csv'.format(args['path']),
-                                          ['gmm_topics', 'gmm_probas'])
-
-# load topics dataframe
-topics = pvtm_utils.load_topics_dataframe('{}/topics.csv'.format(args['path']))
-
-# load gmm model
-clf = joblib.load('{}/gmm.pkl'.format(args['path']))
-
-# docvecs 
-vectors = np.array(model.docvecs.vectors_docs).astype('float64')
-vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(args['path']), sep='\t', index_col=0)
-
-
 def timelines(data, args):
     # if args.timelines or not(args.timeline or args.bhtsne or args.wordclouds):
     print('timelines')
@@ -209,14 +185,21 @@ def wordclouds(data, args):
         args['path'])
     os.system(command=command)
 
+if __name__ == "__main__":
 
-if parsed_args.timelines or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
-    timelines(data, args)
+    model, clf, data, topics = pvtm_utils.load_pvtm_outputs(args['path'])
 
-if parsed_args.bhtsne or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
-    bhtsne(vectors, vecs_with_center, args)
+    # docvecs
+    vectors = np.array(model.docvecs.vectors_docs).astype('float64')
+    vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(args['path']), sep='\t', index_col=0)
 
-if parsed_args.wordclouds or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
-    wordclouds(data, args)
+    if parsed_args.timelines or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
+        timelines(data, args)
 
-print('Finished')
+    if parsed_args.bhtsne or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
+        bhtsne(vectors, vecs_with_center, args)
+
+    if parsed_args.wordclouds or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
+        wordclouds(data, args)
+
+    print('Finished')
