@@ -71,7 +71,7 @@ for topic in range(len(unique_topics)):
 scatter = {
     'data': traces,
     'layout': {'height': 800,
-               'width': 1000,
+               'width': 800,
                'hovermode': 'closest'},
 }
 
@@ -125,7 +125,7 @@ def update_img(topic):
         encoded_image = base64.b64encode(open(image_filename, 'rb').read())
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
     except Exception as e:
-        with open('errors.txt', 'a') as f:
+        with open(args['input']+'errors.txt', 'a') as f:
             f.write(str(e))
             f.write('\n')
 
@@ -157,7 +157,7 @@ def update_timeline(topic):
         }
         return figure
     except Exception as e:
-        with open('errors.txt', 'a') as f:
+        with open(args['input']+'errors.txt', 'a') as f:
             f.write(str(e))
             f.write((str(topic)))
             f.write('\n')
