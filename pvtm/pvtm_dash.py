@@ -181,7 +181,7 @@ def update_timeline(topic, dropvalue):
         with open(args['input']+'/errors.txt', 'a') as f:
             f.write(str(e))
             f.write('\n')
-            f.write('Topic:',(str(topic)))
+            f.write('Topic:'.format(str(topic)))
             f.write('\n')
 
 
