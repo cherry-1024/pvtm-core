@@ -79,16 +79,22 @@ app = dash.Dash()
 
 app.layout = html.Div(children=[
     html.H1('PVTM Results', style={'textAlign': 'center', 'background-color': '#7FDBFF'}),
-    html.H2('Topic Explorer', style={'textAlign': 'center', 'color': '#1C4E80'}),
-    dcc.Graph(id='scatter', figure=scatter),
-    html.H2('Mean Topic Probability', style={'textAlign': 'center', 'color': '#1C4E80'}),
-    dcc.Graph(id='mean_probs',
-              figure={
-                  'data': [
-                      {'x': topics, 'y': timelines_df.mean().values, 'type': 'bar'},
-                  ]
-              }
-              ),
+    html.Div([
+        html.Div([
+            html.H2('Topic Explorer', style={'textAlign': 'center', 'color': '#1C4E80'}),
+            dcc.Graph(id='scatter', figure=scatter)
+            ], className="six columns"),
+        html.Div([
+            html.H2('Mean Topic Probability', style={'textAlign': 'center', 'color': '#1C4E80'}),
+            dcc.Graph(id='mean_probs',
+                      figure={
+                          'data': [
+                              {'x': timelines_df.mean().values, 'y':topics, 'type': 'bar', 'orientation':'h'}
+                          ]
+                      }
+                      )
+            ], className="six columns"),
+    ], className="row"),
     dcc.Slider(
         id='topic-slider',
         min=0,
@@ -160,6 +166,6 @@ def update_timeline(topic):
 app.css.append_css({
     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
 })
-
+  
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True,port=8050, host='0.0.0.0')
