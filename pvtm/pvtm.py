@@ -51,7 +51,13 @@ ap.add_argument("-gcv", "--gmmcvtypes", nargs='+', default=['spherical', 'diag',
 ap.add_argument("-ntp", "--numtopicwords", default=50, required=False,
                 help="How many top words per topic to store. Default = 50")
 
-args = vars(ap.parse_args())
+ap.add_argument("-vis", "--visualizations", required=False,  action='store_true',
+                help="If flag is active then pvtm_vis.py will be run on the pvtm outputs.")
+ap.add_argument("-a", "--app", required=False,  action='store_true',
+                help="If flag is active then the dash app for visualizations will be started on port 8050 using the just created outputs.")
+
+parsed_args = ap.parse_args()
+args = vars(parsed_args )
 # display a friendly message to the user
 print("Use data: {}".format(os.path.abspath(args["input"])))
 
@@ -153,34 +159,7 @@ if __name__ == '__main__':
         out, GMM_N_COMPONENTS = clustering.add_gmm_probas_to_out(out, vectors, clf)
 
         clustering.plot_topic_distribution(out, 'gmm_top_topic', FILENAME=args['output'] + '/GMM_Topics.png')
-        # ## Alternatives to GMM-Clustering: K-Means / Mean Shift
-        #
-        # This is not used for further analysis since the hard assignments produced by these
-        # algorithms contradict the idea that documents can belong to more than one topic.
-        # However it could be used to somehow double check if the GMM clustering produced reasonable results.
-        #
-        # We apply K Means on the doc2vec vectors to find cluster centers.
-        # Mean Shift is applied on the centers found by Kmeans to see if some clusters should be combined (this does not work very well).
 
-        # if args['kmeans'] == False:
-        #
-        #     print('Starting Kmeans...')
-        #     NUM_CLUSTERS = GMM_N_COMPONENTS
-        #     kcluster, assigned_clusters, kmeans_center = clustering.kmeans_cluster(NUM_CLUSTERS, vectors)
-        #
-        #     # join results on dataframe
-        #     out['label_k_means'] = kcluster.predict(vectors)
-        #
-        #     clustering.plot_topic_distribution(out, 'label_k_means', FILENAME='K_means.png')
-        #
-        # if args['mean-shift'] == False:
-        #     print('Starting MeanShift...')
-        #     kcluster2, assigned_clusters2, mean_shift_center = clustering.meanshift_cluster(.MEAN_SHIFT_BANDWIDTH, vectors)
-        #
-        #     out['label_mean_shift'] = kcluster2.predict(vectors)
-        #
-        #     clustering.plot_topic_distribution(out, 'label_mean_shift', FILENAME='Mean-Shift.png')
-        #
 
         """
         # Topic labeling
@@ -218,5 +197,14 @@ if __name__ == '__main__':
         print('store topics and out')
         topics.to_csv(args['output'] + '/topics.csv', encoding='utf-8-sig')
         out.to_csv(args['output'] + '/documents.csv', encoding='utf-8-sig')
+
+    if parsed_args.visualizations:
+        os.system('python pvtm/pvtm_vis.py -p {}'.format(args['output']))
+
+    if parsed_args.app:
+        os.system('python pvtm/pvtm_dash.py -i {}'.format(args['output']))
+
+
+
 
     print('All done')
