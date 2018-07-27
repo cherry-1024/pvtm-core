@@ -33,10 +33,10 @@ ap.add_argument("-lt", "--lemmathreads", default=-1, required=False, type=int,
                 help="Number of threads for the lemmatizer. Default = '-1'")
 ap.add_argument("-lbs", "--lemmabatchsize", default=300, required=False, type=int,
                 help="Batch size for lemmatizer. Default = '300'")
-ap.add_argument("-vmin", "--vectorizermin", default=0.05, required=False, type=float,
-                help="max number of documents in which a word has to appear to be considered. Default = 0.25")
+ap.add_argument("-vmin", "--vectorizermin", default=0.01, required=False, type=float,
+                help="max number of documents in which a word has to appear to be considered. Default = 0.01")
 ap.add_argument("-vmax", "--vectorizermax", default=0.5, required=False, type=float,
-                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.75")
+                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.5")
 
 # gmm
 ap.add_argument("-gv", "--gmmverbose", default=1, required=False,
