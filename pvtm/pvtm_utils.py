@@ -17,6 +17,42 @@ from reportlab.graphics import renderPDF
 from sklearn.externals import joblib
 from svglib.svglib import svg2rlg
 
+import stopwords_generator as sg
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+
+def get_allowed_vocab(data, args, min_df=0.05, max_df=0.95):
+    """
+    Takes a df with a "text" column.
+    Result is a vocabulary based on the corpora from the input dataset.
+    Pre-filtering is done using sklearns tfidfVectorizer with settings for min_df and max_df defined in the args dict.
+    """
+    vec = TfidfVectorizer(min_df=min_df, max_df=max_df)
+
+    # fit on dataset
+    vec.fit(data)
+    # get vocabulary
+    vocabulary = set(vec.vocabulary_.keys())
+    print(len(vocabulary), 'words in the vocabulary')
+    return vocabulary
+
+
+def popularity_based_prefiltering(data, args, min_df=0.05, max_df=0.95):
+    # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
+
+
+    stopwords, language = sg.get_all_stopwords(data[0])
+    vocabulary = get_allowed_vocab(data, args, min_df=min_df, max_df=max_df)
+
+    pp = []
+    for i, line in enumerate(data):
+        rare_removed = list(filter(lambda word: word in vocabulary, line.split()))
+
+        stops_removed = [word.strip() for word in rare_removed if word not in stopwords and not word.isdigit()]
+        pp.append(stops_removed)
+
+    return pp
+
 
 def preprocess(str):
     """
