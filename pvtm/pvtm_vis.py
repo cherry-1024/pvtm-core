@@ -2,8 +2,8 @@
 import argparse
 import os
 import subprocess
+from sklearn.decomposition.pca import PCA
 
-import doc2vec
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,9 +12,7 @@ import pvtm_utils
 from bhtsne import tsne
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
-from reportlab.graphics import renderPDF
-from sklearn.externals import joblib
-from svglib.svglib import svg2rlg
+
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--path", required=True,
@@ -83,6 +81,12 @@ def timelines(data, args):
 def bhtsne(vectors, vecs_with_center, args):
     # if args.bhtsne or not(args.timeline or args.bhtsne or args.wordclouds):
     # bhtnse
+
+
+    pca = PCA(n_components=50)
+    vectors= pca.fit_transform(vectors)
+
+
     print('Bhtsne..')
     Y = tsne(vectors, perplexity=args["tsne_perplexity"])
     pd.DataFrame(Y).to_csv('{}/bhtsne.csv'.format(args['path']))
