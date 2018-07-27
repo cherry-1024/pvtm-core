@@ -23,8 +23,8 @@ ap.add_argument("-d2vp", "--d2v_model", default="", required=False,
 ap.add_argument("-gmmp", "--gmm_model", default="", required=False,
                 help="Provide a path to a folder where a gmm.pkl file is stored. "
                      "No new model will be trained but the pre-trained model will be used instead.")
-ap.add_argument("-e", "--epochs", default=10, required=False, type=int,
-                help="Doc2Vec number epochs. Default = 10")
+ap.add_argument("-e", "--epochs", default=15, required=False, type=int,
+                help="Doc2Vec number epochs. Default = 15")
 ap.add_argument("-d", "--dimension", default=100, required=False, type=int,
                 help="Doc2Vec embedding dimension. Default = 100")
 
