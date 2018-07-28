@@ -17,6 +17,7 @@ from reportlab.graphics import renderPDF
 from sklearn.externals import joblib
 from svglib.svglib import svg2rlg
 
+#from pvtm \
 import stopwords_generator as sg
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -192,6 +193,7 @@ def get_headers_from_similar_docs(out, topics, idx, num_headers):
 def extract_time_info(infodf, datefield):
     infodf['time'] = infodf[datefield].dt.time
     infodf['year'] = infodf[datefield].dt.year
+    infodf['hour'] = infodf[datefield].dt.ceil('H')
     infodf['day'] = infodf[datefield].dt.ceil('D')
     infodf['week'] = infodf[datefield].dt.to_period('W').dt.to_timestamp()
     infodf['month'] = infodf[datefield].dt.to_period('M').dt.to_timestamp()
