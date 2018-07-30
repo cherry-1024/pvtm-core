@@ -39,9 +39,9 @@ ap.add_argument("-vmax", "--vectorizermax", default=0.5, required=False, type=fl
                 help="max number of documents in which a word is allowed to appear to be considered. Default = 0.5")
 
 # gmm
-ap.add_argument("-gv", "--gmmverbose", default=1, required=False,
+ap.add_argument("-gv", "--gmmverbose", default=1, required=False,type=int,
                 help="GMM verbosity during training. Default = 1")
-ap.add_argument("-gi", "--gmmninits", default=2, required=False,
+ap.add_argument("-gi", "--gmmninits", default=2, required=False, type=int,
                 help="GMM number of initializations per Component size. Default = 2")
 ap.add_argument("-gr", "--gmmrange", default=[10, 40, 4], nargs=3, type=int, metavar=('start', 'end', 'step'),
                 help='specify a range', required=False)

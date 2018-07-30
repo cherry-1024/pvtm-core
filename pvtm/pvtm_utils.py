@@ -17,7 +17,7 @@ from reportlab.graphics import renderPDF
 from sklearn.externals import joblib
 from svglib.svglib import svg2rlg
 
-#from pvtm \
+from pvtm \
 import stopwords_generator as sg
 from sklearn.feature_extraction.text import TfidfVectorizer
 
