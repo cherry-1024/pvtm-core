@@ -23,8 +23,8 @@ ap.add_argument("-d2vp", "--d2v_model", default="", required=False,
 ap.add_argument("-gmmp", "--gmm_model", default="", required=False,
                 help="Provide a path to a folder where a gmm.pkl file is stored. "
                      "No new model will be trained but the pre-trained model will be used instead.")
-ap.add_argument("-e", "--epochs", default=10, required=False, type=int,
-                help="Doc2Vec number epochs. Default = 10")
+ap.add_argument("-e", "--epochs", default=15, required=False, type=int,
+                help="Doc2Vec number epochs. Default = 15")
 ap.add_argument("-d", "--dimension", default=100, required=False, type=int,
                 help="Doc2Vec embedding dimension. Default = 100")
 
@@ -39,9 +39,9 @@ ap.add_argument("-vmax", "--vectorizermax", default=0.5, required=False, type=fl
                 help="max number of documents in which a word is allowed to appear to be considered. Default = 0.5")
 
 # gmm
-ap.add_argument("-gv", "--gmmverbose", default=1, required=False,
+ap.add_argument("-gv", "--gmmverbose", default=1, required=False,type=int,
                 help="GMM verbosity during training. Default = 1")
-ap.add_argument("-gi", "--gmmninits", default=2, required=False,
+ap.add_argument("-gi", "--gmmninits", default=2, required=False, type=int,
                 help="GMM number of initializations per Component size. Default = 2")
 ap.add_argument("-gr", "--gmmrange", default=[10, 40, 4], nargs=3, type=int, metavar=('start', 'end', 'step'),
                 help='specify a range', required=False)
