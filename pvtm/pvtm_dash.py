@@ -1,8 +1,3 @@
-import pvtm_utils
-# import utils_func
-# import stopwords_func
-# import Doc2Vec_func
-# import settings
 import argparse
 import base64
 import random
@@ -13,6 +8,7 @@ import dash_html_components as html
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
+import pvtm_utils
 from dash.dependencies import Input, Output
 
 # construct the argument parse and parse the arguments
@@ -22,33 +18,32 @@ ap.add_argument("-i", "--input", default="./Output", required=True,
                 help="path to the input data file")
 args = vars(ap.parse_args())
 
-
 model, gmm, documents, topics_df = pvtm_utils.load_pvtm_outputs(args['input'])
 
-documents['date'] = documents['date'].apply(pd.to_datetime, errors='coerce')
+print('extract date info..')
+# documents['date'] = documents['date'].apply(pd.to_datetime, errors='coerce')
 documents = pvtm_utils.extract_time_info(documents, 'date')
-
-
-
-
 topics = list(range(0, max(documents['gmm_top_topic']) + 1))
-# timelines_df = pd.read_csv(args['input'] + '/timelines_df.csv', index_col='Unnamed: 0')
 
+print('generate topic timelines..')
+timelines_year = pvtm_utils.get_topic_importance_df('year', documents)
+timelines_month = pvtm_utils.get_topic_importance_df('month', documents)
+timelines_week = pvtm_utils.get_topic_importance_df('week', documents)
+timelines_day = pvtm_utils.get_topic_importance_df('day', documents)
+timelines_hour = pvtm_utils.get_topic_importance_df('hour', documents)
+
+print('prepare 3d tsne scatter..')
 # 3d Scatter Plot
-
 bhtsne_3d = pd.read_csv(args['input'] + '/bhtsne_3d.csv', names=['x', 'y', 'z'])
+joined_bhtsne = documents.join(bhtsne_3d)
 
-
-#out = documents.copy()
-#out = out.join(bhtsne_3d)
 traces = []
 unique_topics = documents.gmm_top_topic.unique()
 
-timelines_min = pvtm_utils.get_topic_importance_df('year', documents)
 for topic in range(len(unique_topics)):
     r = lambda: random.randint(0, 255)
     colorhex = '#%02X%02X%02X' % (r(), r(), r())
-    tmp = documents.join(bhtsne_3d)[documents.join(bhtsne_3d).gmm_top_topic == topic]
+    tmp = joined_bhtsne[joined_bhtsne.gmm_top_topic == topic]
     x = tmp['x'].values
     y = tmp['y'].values
     z = tmp['z'].values
@@ -96,23 +91,24 @@ app.layout = html.Div(children=[
         html.Div([
             html.H2('Topic Explorer', style={'textAlign': 'center', 'color': '#1C4E80'}),
             dcc.Graph(id='scatter', figure=scatter)
-            ], className="six columns"),
+        ], className="six columns"),
         html.Div([
             html.H2('Mean Topic Probability', style={'textAlign': 'center', 'color': '#1C4E80'}),
             dcc.Graph(id='mean_probs',
                       figure={
                           'data': [
-                              {'x': timelines_min.mean().values, 'y':topics, 'type': 'bar', 'orientation':'h'}
+                              {'x': timelines_year.mean().values, 'y': topics, 'type': 'bar', 'orientation': 'h'}
                           ]
                       }
                       )
-            ], className="six columns"),
+        ], className="six columns"),
     ], className="row"),
     dcc.Slider(
         id='topic-slider',
         min=0,
         max=max(documents['gmm_top_topic']),
         step=None,
+
         marks={str(topic): str(topic) for topic in topics}
     ),
     html.Div([
@@ -125,10 +121,20 @@ app.layout = html.Div(children=[
             dcc.Dropdown(
                 id='dropdown',
                 options=[
-                    {'label':'year','value':'year'},
-                    {'label':'month','value':'month'},
-                    {'label':'day','value':'day'},
-                    {'label':'week','value':'week'}
+                    {'label': 'year', 'value': 'year'},
+                    {'label': 'month', 'value': 'month'},
+                    {'label': 'day', 'value': 'day'},
+                    {'label': 'week', 'value': 'week'}
+                ]
+            ),
+            dcc.Dropdown(
+                id='dropdown_smoothing',
+                options=[
+                    {'label': 5, 'value': 5},
+                    {'label': 4, 'value': 4},
+                    {'label': 3, 'value': 3},
+                    {'label': 2, 'value': 2},
+                    {'label': 1, 'value': 1},
                 ]
             ),
             dcc.Graph(id='timeline', animate=False)
@@ -147,22 +153,36 @@ def update_img(topic):
         encoded_image = base64.b64encode(open(image_filename, 'rb').read())
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
     except Exception as e:
-        with open(args['input']+'/errors.txt', 'a') as f:
+        with open(args['input'] + '/errors.txt', 'a') as f:
             f.write(str(e))
             f.write('\n')
 
 
 @app.callback(dash.dependencies.Output('timeline', 'figure'),
               [dash.dependencies.Input('topic-slider', 'value'),
-               dash.dependencies.Input('dropdown', 'value')]
+               dash.dependencies.Input('dropdown', 'value'),
+               dash.dependencies.Input('dropdown_smoothing', 'value')]
               )
-def update_timeline(topic, dropvalue):
+def update_timeline(topic, dropvalue, smoothing):
     try:
-        timelines_df = pvtm_utils.get_topic_importance_df(dropvalue, documents)
+        if dropvalue == 'year':
+            timelines_df = timelines_year.copy()
+        elif dropvalue == 'month':
+            timelines_df = timelines_month.copy()
+        elif dropvalue == 'week':
+            timelines_df = timelines_week.copy()
+        elif dropvalue == 'day':
+            timelines_df = timelines_day.copy()
+        elif dropvalue == 'hour':
+            timelines_df = timelines_hour.copy()
+        else:
+            timelines_df = pvtm_utils.get_topic_importance_df(dropvalue, documents)
+
+
         X = timelines_df.index
-        Y = timelines_df[topic].ewm(span=3).mean().values
+        Y = timelines_df[topic].ewm(span=smoothing).mean().values
         X1 = timelines_df.index
-        Y1 = np.repeat(1 / (max(topics)+1), len(X1))
+        Y1 = np.repeat(1 / (max(topics) + 1), len(X1))
         X2 = timelines_df.index
         Y2 = np.repeat(np.mean(Y), len(X2))
         figure = {
@@ -178,7 +198,7 @@ def update_timeline(topic, dropvalue):
         }
         return figure
     except Exception as e:
-        with open(args['input']+'/errors.txt', 'a') as f:
+        with open(args['input'] + '/errors.txt', 'a') as f:
             f.write(str(e))
             f.write('\n')
             f.write('Topic:'.format(str(topic)))
@@ -188,6 +208,6 @@ def update_timeline(topic, dropvalue):
 app.css.append_css({
     'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
 })
-  
+
 if __name__ == '__main__':
-    app.run_server(debug=True,port=8050, host='0.0.0.0')
+    app.run_server(debug=True, port=8050, host='0.0.0.0')
