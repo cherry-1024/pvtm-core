@@ -20,6 +20,8 @@ ap = argparse.ArgumentParser()
 # general
 ap.add_argument("-i", "--input", default="./Output", required=True,
                 help="path to the input data file")
+ap.add_argument("-p", "--port", default=8050, required=True,type=int,
+                help="path to the input data file")
 args = vars(ap.parse_args())
 
 
@@ -252,4 +254,4 @@ app.css.append_css({
 })
   
 if __name__ == '__main__':
-    app.run_server(debug=True,port=8050, host='0.0.0.0')
+    app.run_server(debug=True,port=args['port'], host='0.0.0.0')
