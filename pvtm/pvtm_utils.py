@@ -1,23 +1,22 @@
-import gensim
-from sklearn.externals import joblib
 import ast
 import datetime
 import glob
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-import os
-import pandas as pd
 import random
 import re
-import spacy
 # import stopwords_generator
 import subprocess
 import time
 from collections import Counter
-from gensim.models.doc2vec import TaggedDocument, Doc2Vec
+
+import gensim
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from gensim.models.doc2vec import TaggedDocument
 from reportlab.graphics import renderPDF
+from sklearn.externals import joblib
 from svglib.svglib import svg2rlg
+
 
 def preprocess(str):
     """
@@ -36,12 +35,19 @@ def preprocess_document(text):
     text = preprocess(text)
     return ''.join([x if x.isalnum() or x.isspace() else " " for x in text]).split()
 
-
-
 def clean_svg(path):
     files = glob.glob(path + '*.svg')
+    print(files)
     for file in files:
-        subprocess.call('scour -i {} -o {} --enable-viewboxing --enable-id-stripping --enable-comment-stripping --shorten-ids --indent=none'.format(file, file))
+        print(file)
+        print(file[-10:])
+        if file[-10:] == '_clean.svg':
+            continue
+        new_file_name = file[:-4] + '_clean.svg'
+        command = """scour -i {} -o {} --enable-viewboxing --enable-id-stripping 
+        --enable-comment-stripping --shorten-ids --indent=none""".format(file, new_file_name)
+        subprocess.call(command)
+        print('ok')
 
 
 class Documents(object):
@@ -500,7 +506,6 @@ def svg_to_pdf(in_path):
     renderPDF.drawToFile(drawing, out_path)
 
 
-
 def load_pvtm_outputs(path):
     """
     Load all relevant outputs from PVTM.
@@ -512,7 +517,7 @@ def load_pvtm_outputs(path):
 
     # load document dataframe
     data = load_document_dataframe('{}/documents.csv'.format(path),
-                                              ['gmm_topics', 'gmm_probas'])
+                                   ['gmm_topics', 'gmm_probas'])
 
     # load topics dataframe
     topics = load_topics_dataframe('{}/topics.csv'.format(path))
@@ -523,7 +528,8 @@ def load_pvtm_outputs(path):
     # docvecs
     vectors = np.array(model.docvecs.vectors_docs).astype('float64')
     vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(path), sep='\t', index_col=0)
-    return model, gmm, data, topics#, vectors, vecs_with_center
+    return model, gmm, data, topics  # , vectors, vecs_with_center
+
 
 def spacy_lemmatizer(text, nlp, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE):
     """

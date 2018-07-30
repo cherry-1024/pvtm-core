@@ -1,5 +1,4 @@
 
-
 options(echo=TRUE)
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -44,26 +43,18 @@ topic.wordl <- function(filepath, wordsize_scale=0.75){
 }
 
 files <- list.files(path=sprintf(".\\%s\\wordclouds", args), pattern='*.txt')
-files
+# files
 
 #pdf(file=".\\Output\\wordclouds\\wordcloud.pdf")
 for (file in files){
   # pdf(file=".\\Output\\wordclouds\\wordcloud.pdf")
-  # pdf(sprintf(".\\%s\\wordclouds\\%s.pdf", args, file))
+  pdf(sub(".txt", ".pdf", sprintf(".\\%s\\wordclouds\\%s", args, file)))
+  # pdf(sprintf(".\\Output\\wordclouds\\%s.pdf", file))
   
-  svg(sprintf(".\\%s\\wordclouds\\%s.svg", args, file))
+  # svg(sprintf(".\\Output\\wordclouds\\%s.svg", file))
+  
   fullpath = sprintf(".\\%s\\wordclouds\\%s", args, file)
-	topic.wordl(fullpath, wordsize_scale = 0.5)
-	dev.off()
+  topic.wordl(fullpath, wordsize_scale = 0.5)
+  dev.off()
 	}
 #dev.off()
-
-for (file in files){
-  # pdf(file=".\\Output\\wordclouds\\wordcloud.pdf")
-  pdf(sprintf(".\\%s\\wordclouds\\%s.pdf", args, file))
-  
-  # svg(sprintf(".\\%s\\wordclouds\\%s.svg", args, file))
-  fullpath = sprintf(".\\%s\\wordclouds\\%s", args, file)
-	topic.wordl(fullpath, wordsize_scale = 0.5)
-	dev.off()
-	}

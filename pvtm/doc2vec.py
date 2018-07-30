@@ -80,7 +80,7 @@ def get_documents_from_text(out, LANGUAGE, COUNTVECTORIZER_MAXDF, COUNTVECTORIZE
     stopwords, language = stopwords_generator.get_all_stopwords()
     print('len stopwords \n', len(stopwords))
 
-    # popularity based pre-filtering. Ignore rare and common words. But we don't want stopwords and digits.
+    # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
     pp = []
     for i, line in enumerate(data):
         rare_removed = list(filter(lambda word: word in vocabulary, line.split()))
