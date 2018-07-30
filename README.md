@@ -123,12 +123,12 @@ python pvtm/pvtm_vis.py -path output
 Note that the visualizations require Inkscape, R and a C++ compiler available through your systems path variable.
 <br>
 <br>
-Another way to visualize the results is using of a dash app. By running the following command,
-we get a dash app, where we can swith through all created topics
+Another way to visualize the results is using a dash app. By running the following command,
+we get a dash app, where we can switch through all created topics
 ```
 python pvtm/pvtm_dash.py -i output
 ```
-You can get more information about dash apps [here] (https://dash.plot.ly/).
+You can get more information about dash apps [here](https://dash.plot.ly/).
 
 ## Citation
 tba
