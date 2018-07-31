@@ -13,13 +13,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from gensim.models.doc2vec import TaggedDocument
+# from pvtm \
+import stopwords_generator as sg
 from reportlab.graphics import renderPDF
 from sklearn.externals import joblib
-from svglib.svglib import svg2rlg
-
-from pvtm \
-import stopwords_generator as sg
 from sklearn.feature_extraction.text import TfidfVectorizer
+from svglib.svglib import svg2rlg
 
 
 def get_allowed_vocab(data, args, min_df=0.05, max_df=0.95):
@@ -71,6 +70,7 @@ def preprocess_document(text):
     """
     text = preprocess(text)
     return ''.join([x if x.isalnum() or x.isspace() else " " for x in text]).split()
+
 
 def clean_svg(path):
     files = glob.glob(path + '*.svg')
