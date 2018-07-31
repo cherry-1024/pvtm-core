@@ -16,10 +16,10 @@ from scatter_plots import scatter_2d,scatter_3d # load scatter plots
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 # general
-ap.add_argument("-i", "--input", default="./Output", required=True,
-                help="path to the input data file")
-ap.add_argument("-p", "--port", default=8050, required=True,type=int,
-                help="dash app port")
+ap.add_argument("-i", "--input", default="./Output",
+                help="path to the input data file. Default = './Output'")
+ap.add_argument("-p", "--port", default=8050, type=int,
+                help="dash app port. Default = 8050")
 args = vars(ap.parse_args())
 
 
