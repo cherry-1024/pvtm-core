@@ -133,12 +133,16 @@ def plot_BIC(bic, N_COMPONENTS_RANGE, CV_TYPES, args):
     print(best_bics)
 
     bic_scores_df.plot(kind='bar', figsize=(24, 4))
-    plttmp = bic_scores_df.plot(kind='bar', figsize=(24, 4), title='A')
-    fig = plttmp.get_figure()
+    upper, lower = bic_scores_df.max().max(), bic_scores_df.min().min()
+    add = abs((upper - lower) / 15)
+    plt.ylim(lower-add, upper+add)
+    # plttmp = bic_scores_df.plot(kind='bar', figsize=(24, 4), title='A')
+    # fig = plttmp.get_figure()
     plt.grid()
     plt.savefig('{}/BIC_scores.svg'.format(args['output']), bbox_inches='tight')
     plt.savefig('{}/BIC_scores.png'.format(args['output']), bbox_inches='tight')
     pvtm_utils.svg_to_pdf('{}/BIC_scores.svg'.format(args['output']))
+    bic_scores_df.to_csv('{}/BIC_scores.csv'.format(args['output']))
     plt.clf()
 
 
