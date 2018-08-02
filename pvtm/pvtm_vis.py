@@ -2,7 +2,6 @@
 import argparse
 import os
 import subprocess
-from sklearn.decomposition.pca import PCA
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +11,8 @@ import pvtm_utils
 from bhtsne import tsne
 from matplotlib import pyplot
 from mpl_toolkits.mplot3d import Axes3D
-
+from sklearn.decomposition.pca import PCA
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--path", required=True,
@@ -21,6 +21,11 @@ ap.add_argument("-tp", "--tsne_perplexity", default=15, required=False,
                 help="Perplexity value for tsne")
 ap.add_argument("-al", "--agg_lvl", default='year', required=False,
                 help="Unit of aggregation for topic importance over time. Can be 'year', 'month','week','day'. Maybe more.")
+ap.add_argument("-vmin", "--vectorizermin", default=0.01, required=False, type=float,
+                help="max number of documents in which a word has to appear to be considered. Default = 0.01")
+ap.add_argument("-vmax", "--vectorizermax", default=0.5, required=False, type=float,
+                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.5")
+
 ap.add_argument("-bhtsne", action='store_true',
                 help="If one of -bhtsne, -timelines, -wordclouds is used, then only do the mentioned ones. Otherwise do all visualizations.")
 ap.add_argument("-timelines", action='store_true',
@@ -36,7 +41,6 @@ print(args)
 
 
 def timelines(data, args):
-
     print('timelines')
     data.date = data.date.apply(lambda x: pd.to_datetime(x, errors='coerce'))
     data = pvtm_utils.extract_time_info(data, 'date')
@@ -84,8 +88,7 @@ def bhtsne(vectors, vecs_with_center, args):
 
 
     pca = PCA(n_components=50)
-    vectors= pca.fit_transform(vectors)
-
+    vectors = pca.fit_transform(vectors)
 
     print('Bhtsne..')
     Y = tsne(vectors, perplexity=args["tsne_perplexity"])
@@ -150,15 +153,48 @@ def bhtsne(vectors, vecs_with_center, args):
     pd.DataFrame(Y).to_csv('{}/bhtsne_with_center_3d.csv'.format(args['path']))
 
 
-def wordclouds(data, args):
+def get_vocabulary_from_tfidf(data, COUNTVECTORIZER_MINDF, COUNTVECTORIZER_MAXDF):
+    print('start vectorizer')
+    vec = TfidfVectorizer(min_df=COUNTVECTORIZER_MINDF,
+                          max_df=COUNTVECTORIZER_MAXDF,
+                          stop_words='english')
 
+    vec.fit(data)
+    print('finished vectorizer')
+
+    vocabulary = set(vec.vocabulary_.keys())
+    print(len(vocabulary), 'words in the vocabulary')
+
+    return vocabulary
+
+
+def wordclouds(data, args):
     print('wordclouds..')
     pvtm_utils.check_path('{}/wordclouds'.format(args['path']))
 
+    print('get tf-idf vocabulary..')
+    vocabulary = get_vocabulary_from_tfidf(data.text.values, args['vectorizermin'], args['vectorizermax'])
+    #
+    stopwords, language = pvtm_utils.get_all_stopwords()
+    print('# stopwords:', len(stopwords))
+
+    # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
+    print('start pop based prefiltering')
+    pp = []
+    for i, line in enumerate(data.text.values):
+        rare_removed = list(filter(lambda word: word in vocabulary, line.split()))
+
+        stops_removed = [word.strip() for word in rare_removed if word not in stopwords and not word.isdigit()]
+        pp.append(stops_removed)
+
+    print('finished pop based prefiltering')
+
+    data['data_clean'] = pp
     topicgroup = data.groupby('gmm_top_topic')
+
     for i, group in topicgroup:
         cc = [word.lower().strip().replace('ä', 'ae').replace('ü', 'ue').replace('ö', 'oe').replace('ß', 'ss') for _list
-              in group.data.values for word in _list]
+              in group['data_clean'].values for word in _list]
 
         with open('{}/wordclouds/topic_{}.txt'.format(args['path'], i), 'w', encoding='utf-8') as textfile:
             textfile.write('\n'.join(cc))
@@ -176,6 +212,7 @@ def wordclouds(data, args):
     command = 'FOR %A IN ({}\wordclouds\*.pdf) DO inkscape %A --export-png=%A.png --export-area-drawing -b "white" -d 800'.format(
         args['path'])
     os.system(command=command)
+
 
 if __name__ == "__main__":
 
