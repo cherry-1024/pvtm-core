@@ -9,7 +9,7 @@ import spacy
 import stopwords_generator
 import time
 from gensim.models.doc2vec import TaggedDocument, Doc2Vec
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import  TfidfVectorizer
 
 print('gensim version: ', gensim.__version__)
 
@@ -75,21 +75,22 @@ def get_documents_from_text(out, LANGUAGE, COUNTVECTORIZER_MAXDF, COUNTVECTORIZE
 
     preprocessed = preprocess_documents(out)
     data = lemmatize(preprocessed, LANGUAGE, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE, OUTPUTPATH, FILENAME)
-    vocabulary = get_vocabulary_from_tfidf(data, COUNTVECTORIZER_MINDF, COUNTVECTORIZER_MAXDF)
-
-    stopwords, language = stopwords_generator.get_all_stopwords()
-    print('len stopwords \n', len(stopwords))
-
-    # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
-    pp = []
-    for i, line in enumerate(data):
-        rare_removed = list(filter(lambda word: word in vocabulary, line.split()))
-
-        stops_removed = [word.strip() for word in rare_removed if word not in stopwords and not word.isdigit()]
-        pp.append(stops_removed)
-
-    print('finish preprocessing')
-    documents = pvtm_utils.Documents(pp)
+    # vocabulary = get_vocabulary_from_tfidf(data, COUNTVECTORIZER_MINDF, COUNTVECTORIZER_MAXDF)
+    #
+    # stopwords, language = stopwords_generator.get_all_stopwords()
+    # print('len stopwords \n', len(stopwords))
+    #
+    # # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
+    # pp = []
+    # for i, line in enumerate(data):
+    #     rare_removed = list(filter(lambda word: word in vocabulary, line.split()))
+    #
+    #     stops_removed = [word.strip() for word in rare_removed if word not in stopwords and not word.isdigit()]
+    #     pp.append(stops_removed)
+    #
+    # print('finish preprocessing')
+    # documents = pvtm_utils.Documents(pp)
+    documents = pvtm_utils.Documents(data)
 
     return documents
 
