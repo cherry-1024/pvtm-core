@@ -23,8 +23,8 @@ ap.add_argument("-al", "--agg_lvl", default='year', required=False,
                 help="Unit of aggregation for topic importance over time. Can be 'year', 'month','week','day'. Maybe more.")
 ap.add_argument("-vmin", "--vectorizermin", default=0.01, required=False, type=float,
                 help="max number of documents in which a word has to appear to be considered. Default = 0.01")
-ap.add_argument("-vmax", "--vectorizermax", default=0.5, required=False, type=float,
-                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.5")
+ap.add_argument("-vmax", "--vectorizermax", default=0.65, required=False, type=float,
+                help="max number of documents in which a word is allowed to appear to be considered. Default = 0.65")
 
 ap.add_argument("-bhtsne", action='store_true',
                 help="If one of -bhtsne, -timelines, -wordclouds is used, then only do the mentioned ones. Otherwise do all visualizations.")
@@ -175,7 +175,7 @@ def wordclouds(data, args):
     print('get tf-idf vocabulary..')
     vocabulary = get_vocabulary_from_tfidf(data.text.values, args['vectorizermin'], args['vectorizermax'])
     #
-    stopwords, language = pvtm_utils.get_all_stopwords()
+    stopwords = pvtm_utils.get_all_stopwords()
     print('# stopwords:', len(stopwords))
 
     # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
