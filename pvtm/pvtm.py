@@ -126,7 +126,7 @@ if __name__ == '__main__':
 
     # Detect the language of the documents and load the respective stopwords
     vocab = list(model.wv.vocab.keys())
-    stopwordssss, LANGUAGE = pvtm_utils.get_all_stopwords(' '.join(vocab[:1000]))
+    stopwordssss = pvtm_utils.get_all_stopwords()
 
     print('Document Df: ', out.shape)
     print('Vectors: ', vectors.shape)
