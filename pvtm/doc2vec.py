@@ -1,12 +1,8 @@
 import gensim
-import glob
 import os
 import pandas as pd
-# custom
 import pvtm_utils
-import re
 import spacy
-import stopwords_generator
 import time
 from gensim.models.doc2vec import TaggedDocument, Doc2Vec
 from sklearn.feature_extraction.text import  TfidfVectorizer
@@ -75,22 +71,21 @@ def get_documents_from_text(out, LANGUAGE, COUNTVECTORIZER_MAXDF, COUNTVECTORIZE
 
     preprocessed = preprocess_documents(out)
     data = lemmatize(preprocessed, LANGUAGE, LEMATIZER_N_THREADS, LEMMATIZER_BATCH_SIZE, OUTPUTPATH, FILENAME)
-    # vocabulary = get_vocabulary_from_tfidf(data, COUNTVECTORIZER_MINDF, COUNTVECTORIZER_MAXDF)
-    #
-    # stopwords, language = stopwords_generator.get_all_stopwords()
-    # print('len stopwords \n', len(stopwords))
-    #
-    # # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
-    # pp = []
-    # for i, line in enumerate(data):
-    #     rare_removed = list(filter(lambda word: word in vocabulary, line.split()))
-    #
-    #     stops_removed = [word.strip() for word in rare_removed if word not in stopwords and not word.isdigit()]
-    #     pp.append(stops_removed)
-    #
-    # print('finish preprocessing')
-    # documents = pvtm_utils.Documents(pp)
-    documents = pvtm_utils.Documents(data)
+    vocabulary = get_vocabulary_from_tfidf(data, COUNTVECTORIZER_MINDF, COUNTVECTORIZER_MAXDF)
+
+    stopwords = pvtm_utils.get_all_stopwords()
+    print('len stopwords \n', len(stopwords))
+
+    # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
+    pp = []
+    for i, line in enumerate(data):
+        rare_removed = list(filter(lambda word: word in vocabulary, line.split()))
+
+        stops_removed = [word.strip() for word in rare_removed if word not in stopwords and not word.isdigit()]
+        pp.append(stops_removed)
+
+    print('finished preprocessing')
+    documents = pvtm_utils.Documents(pp)
 
     return documents
 
@@ -111,7 +106,7 @@ def train_doc_2_vec(Doc2Vec_EPOCHS, EMBEDDING_DIM, documents, count, MODEL_SAVE_
     print('Building vocab')
     model.build_vocab(documents)
 
-    losses = []
+
     for epoch in range(Doc2Vec_EPOCHS):
         print("epoch " + str(epoch))
         model.train(documents, total_examples=count, epochs=1)
