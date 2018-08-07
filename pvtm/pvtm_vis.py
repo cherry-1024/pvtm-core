@@ -1,6 +1,7 @@
 # import the necessary packages
 import argparse
 import os
+import random
 import subprocess
 
 import matplotlib.pyplot as plt
@@ -175,7 +176,7 @@ def wordclouds(data, args):
     print('get tf-idf vocabulary..')
     vocabulary = get_vocabulary_from_tfidf(data.text.values, args['vectorizermin'], args['vectorizermax'])
     #
-    stopwords = pvtm_utils.get_all_stopwords()
+    stopwords, language = pvtm_utils.get_all_stopwords()
     print('# stopwords:', len(stopwords))
 
     # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
@@ -188,7 +189,6 @@ def wordclouds(data, args):
         pp.append(stops_removed)
 
     print('finished pop based prefiltering')
-
     data['data_clean'] = pp
     topicgroup = data.groupby('gmm_top_topic')
 
@@ -214,13 +214,94 @@ def wordclouds(data, args):
     os.system(command=command)
 
 
+def similarity_wordclouds(data, args):
+    print('wordclouds..')
+    pvtm_utils.check_path('{}/wordclouds'.format(args['path']))
+
+    print('get tf-idf vocabulary..')
+    vocabulary = get_vocabulary_from_tfidf(data.text.values, args['vectorizermin'], args['vectorizermax'])
+    #
+    stopwords, language = pvtm_utils.get_all_stopwords()
+    print('# stopwords:', len(stopwords))
+
+    # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
+    print('start pop based prefiltering')
+
+    topn = 5000
+    topics_numbers = data.gmm_top_topic.unique()
+    print(topics_numbers)
+    for topic in topics_numbers:
+        print(topic)
+        path = '{}/wordclouds/topic_{}.txt'.format(args['path'], topic)
+        wordlist_df, words_df = similarity_wordclouds_to_text(model, center, topic, path, topn, vocabulary, stopwords)
+
+    print('finished pop based prefiltering')
+
+    # create pdf wordclouds
+    commands = ["RScript", "wordclouds.R", args['path']]
+    subprocess.call(commands)
+
+    print('Wordclouds to png..')
+    command = 'FOR %A IN ({}\wordclouds\*.pdf) DO inkscape %A --export-pdf=%A --export-area-drawing -b "white" '.format(
+        args['path'])
+    os.system(command=command)
+
+    print('Wordclouds to svg..')
+    command = 'FOR %A IN ({}\wordclouds\*.pdf) DO inkscape %A --export-plain-svg=%A.svg --export-area-drawing'.format(
+        args['path'])
+    os.system(command=command)
+
+    print('Wordclouds to png..')
+    command = 'FOR %A IN ({}\wordclouds\*.pdf) DO inkscape %A --export-png=%A.png --export-area-drawing -b "white" -d 800'.format(
+        args['path'])
+    os.system(command=command)
+
+
+
+
+
+def similarity_wordclouds_to_text(model, center, topic, path, topn, vocabulary, stopwordss):
+    # get most similar words and their similarity
+    simis = model.wv.most_similar(positive=[center[topic]], topn=topn)
+    sim_words = [sim[0] for sim in simis]
+    sim_values = [sim[1] for sim in simis]
+
+    # create dataframe but filter words that are not in the voab or are stopwords
+    words_df = pd.DataFrame(
+        [[word, value] for word, value in zip(sim_words, sim_values) if word in vocabulary and word not in stopwordss])
+    words_df.columns = ['word', 'sim']
+
+    # create a value for how often a word shall be written in the wordcloud text file
+    words_df['frequency'] = [max((5000 // (i + 10)), 1) for i in range(words_df.shape[0])]
+
+    # new column with given number of reps per word
+    words_df.word = words_df.word.apply(lambda x: x + ' ')
+    words_df['word_list'] = words_df.frequency * words_df.word
+
+    # make to list
+    wordlist = words_df['word_list'].str.split().values.tolist()
+    # flat list
+    wordlist = [item for sublist in wordlist for item in sublist]
+    # shuffle list
+    random.shuffle(wordlist)
+
+    with open(path, "w", encoding="utf-8") as textfile:
+        textfile.write('\n'.join(wordlist))
+
+    return pd.DataFrame(wordlist), words_df
+
+
 if __name__ == "__main__":
 
     model, clf, data, topics = pvtm_utils.load_pvtm_outputs(args['path'])
 
     # docvecs
     vectors = np.array(model.docvecs.vectors_docs).astype('float64')
-    vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(args['path']), sep='\t', index_col=0)
+    vecs_with_center = pd.read_csv('{}/vectors_with_center.tsv'.format(args['path']), sep='\t', index_col=0,
+                                   header=None)
+    center = vecs_with_center.iloc[data.shape[0]:].values
+    print('Found {} cluster center'.format(center.shape[0]))
+    print('Topics: ', topics.shape)
 
     if parsed_args.timelines or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
         timelines(data, args)
@@ -229,6 +310,7 @@ if __name__ == "__main__":
         bhtsne(vectors, vecs_with_center, args)
 
     if parsed_args.wordclouds or not (parsed_args.timelines or parsed_args.bhtsne or parsed_args.wordclouds):
-        wordclouds(data, args)
+        # wordclouds(data, args)
+        similarity_wordclouds(data, args)
 
     print('Finished')
