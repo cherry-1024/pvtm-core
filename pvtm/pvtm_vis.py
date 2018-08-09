@@ -77,7 +77,7 @@ def timelines(data, args):
         plt.xlim(topic_importance_df.index[0], topic_importance_df.index[-1])
 
         file_name = 'timeline_Topic_{}'.format(topic)
-        plt.savefig('{}/topics/timelines/{}.svg'.format(args['path'], file_name), bbox_inches='tight')
+        plt.savefig('{}/topics/timelines/{}.pdf'.format(args['path'], file_name), bbox_inches='tight')
         plt.savefig('{}/topics/timelines/{}.png'.format(args['path'], file_name), bbox_inches='tight')
         plt.close()
         # plt.show()
@@ -176,7 +176,7 @@ def wordclouds(data, args):
     print('get tf-idf vocabulary..')
     vocabulary = get_vocabulary_from_tfidf(data.text.values, args['vectorizermin'], args['vectorizermax'])
     #
-    stopwords, language = pvtm_utils.get_all_stopwords()
+    stopwords = pvtm_utils.get_all_stopwords()
     print('# stopwords:', len(stopwords))
 
     # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
@@ -221,7 +221,7 @@ def similarity_wordclouds(data, args):
     print('get tf-idf vocabulary..')
     vocabulary = get_vocabulary_from_tfidf(data.text.values, args['vectorizermin'], args['vectorizermax'])
     #
-    stopwords, language = pvtm_utils.get_all_stopwords()
+    stopwords = pvtm_utils.get_all_stopwords()
     print('# stopwords:', len(stopwords))
 
     # popularity based pre-filtering. Ignore rare and common words. And we don't want stopwords and digits.
@@ -257,9 +257,6 @@ def similarity_wordclouds(data, args):
     os.system(command=command)
 
 
-
-
-
 def similarity_wordclouds_to_text(model, center, topic, path, topn, vocabulary, stopwordss):
     # get most similar words and their similarity
     simis = model.wv.most_similar(positive=[center[topic]], topn=topn)
@@ -270,6 +267,9 @@ def similarity_wordclouds_to_text(model, center, topic, path, topn, vocabulary, 
     words_df = pd.DataFrame(
         [[word, value] for word, value in zip(sim_words, sim_values) if word in vocabulary and word not in stopwordss])
     words_df.columns = ['word', 'sim']
+    words_df['word'] = words_df["word"].str.strip().str.replace('ä', 'ae').str.replace('ü', 'ue').str.replace('ö',
+                                                                                                   'oe').str.replace(
+        'ß', 'ss')
 
     # create a value for how often a word shall be written in the wordcloud text file
     words_df['frequency'] = [max((5000 // (i + 10)), 1) for i in range(words_df.shape[0])]
