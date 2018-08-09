@@ -125,6 +125,8 @@ scatter_3d = {
                'hovermode': 'closest'},
 }
 
+# the model app layout contains documents distribution bar chart, wordcloud, timelines and scatter plots
+
 layout= html.Div(children=[
     html.H2('Model 1 (RWE in JSE)', style={'textAlign': 'center', 'color': '#7FDBFF'}),
     dcc.Graph(
@@ -136,8 +138,7 @@ layout= html.Div(children=[
             ],
             'layout': {
                 'title': 'Document distribution',
-                'xaxis': {'title': 'Topics'},
-                #'yaxis': {'title': 'Probability'}
+                'xaxis': {'title': 'Topics'}
                 }
         }),
     dcc.Input(
@@ -146,13 +147,13 @@ layout= html.Div(children=[
         type='number',
         value=0,
         min=0,
-        max=max(docs_dist.index)
+        max=max(docs_dist.index) # number of topics
     ),
     html.Div([
         html.Div([
             html.H2('Word Cloud', style={'textAlign': 'center', 'color': '#1C4E80'}),
             html.Img(id='img', style={'width': '500px'})
-        ], className="six columns"),
+        ], className="six columns"), # about 50 % of the layout
         html.Div([
             html.H2('Timeline', style={'textAlign': 'center', 'color': '#1C4E80'}),
             dcc.Graph(id='timeline', animate=False)
@@ -165,7 +166,7 @@ layout= html.Div(children=[
                 {'label': '2D Plot', 'value': 2},
                 {'label': '3D Plot', 'value': 3}
             ],
-            value=2,
+            value=2, # default: 2D plot, depending on corpus size 3d plot could slow down the app
             id='tabs-scatter'),
         html.Div(id='scatter-output')
     ]),
@@ -183,6 +184,8 @@ def update_img(value):
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(value))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
@@ -193,9 +196,9 @@ def update_timeline(topic):
     try:
         topic = str(topic)
         X = timeline_jse.index  # timeline jse
-        Y = timeline_jse[topic].values
+        Y = timeline_jse[topic].ewm(span=5).mean().values
         X1 = timeline_rwe.index # timeline rwe
-        Y1 = timeline_rwe[topic].values
+        Y1 = timeline_rwe[topic].ewm(span=5).mean().values
         figure = {
             'data': [
                 {'x': X, 'y': Y, 'type': 'line', 'name': 'JSE'},
@@ -210,6 +213,8 @@ def update_timeline(topic):
         return figure
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(topic))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
