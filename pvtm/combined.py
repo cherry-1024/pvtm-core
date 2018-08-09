@@ -19,10 +19,9 @@ ap = argparse.ArgumentParser()
 # general
 ap.add_argument("-i", "--input", default="./Output",
                 help="path to the input data file. Default = './Output'")
-# ap.add_argument("-p", "--port", default=8050, type=int,
-#                help="dash app port. Default = 8050")
-args = vars(ap.parse_args())
 
+args = vars(ap.parse_args())
+# load data for timelines and document distribution
 documents= pd.read_csv(args['input']+"/JSE_RWE/documents.csv")
 docs_dist= pd.read_csv(args['input']+"/comparison_results_JSE_RWE/combined_corpus/document_distribution.csv")
 timeline_jse = pd.read_csv(args['input']+"/comparison_results_JSE_RWE/combined_corpus/timeline_overview_1.csv",index_col='Unnamed: 0')
@@ -37,6 +36,7 @@ traces_2d=[]
 traces_3d = []
 unique_topics = documents.gmm_top_topic.unique()
 
+# 2D Scatter Plot
 for topic in range(len(unique_topics)):
     r = lambda: random.randint(0, 255)
     colorhex = '#%02X%02X%02X' % (r(), r(), r())
@@ -78,7 +78,7 @@ scatter_2d = {
                'hovermode': 'closest'},
 }
 
-# 3D Plot
+# 3D Scatter Plot
 print('prepare 3d tsne scatter..')
 
 for topic in range(len(unique_topics)):
@@ -124,7 +124,7 @@ scatter_3d = {
                'hovermode': 'closest'},
 }
 
-
+# the model app layout contains documents distribution bar chart, wordcloud & timelines(side by side) and scatter plots
 layout= html.Div(children=[
     html.H2('Combined Model', style={'textAlign': 'center', 'color': '#7FDBFF'}),
     dcc.Graph(
@@ -136,8 +136,7 @@ layout= html.Div(children=[
             ],
             'layout': {
                 'title': 'Document distribution',
-                'xaxis': {'title': 'Topics'},
-                #'yaxis': {'title': 'Probability'}
+                'xaxis': {'title': 'Topics'}
                 }
         }),
     dcc.Input(
@@ -157,10 +156,6 @@ layout= html.Div(children=[
             html.H2('Timeline', style={'textAlign': 'center', 'color': '#1C4E80'}),
             dcc.Graph(id='timeline_3', animate=False)
         ], className="six columns"),
-#        html.Div([
-#            html.H2('Timeline', style={'textAlign': 'center', 'color': '#1C4E80'}),
-#            html.Img(id='timeline_3', style={'width': '500px'})
-#        ], className="six columns")
     ], className="row"),
     html.Div([
         html.H2('Topic Explorer', style={'textAlign': 'center', 'color': '#1C4E80'}),
@@ -187,6 +182,8 @@ def update_img(value):
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(value))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
@@ -198,9 +195,9 @@ def update_timeline(topic):
     try:
         topic = str(topic)
         X = timeline_rwe.index  # timeline jse
-        Y = timeline_rwe[topic].values
+        Y = timeline_rwe[topic].ewm(span=5).mean().values
         X1 = timeline_jse.index # timeline rwe
-        Y1 = timeline_jse[topic].values
+        Y1 = timeline_jse[topic].ewm(span=5).mean().values
         figure = {
             'data': [
                 {'x': X, 'y': Y, 'type': 'line', 'name': 'RWE'},
@@ -215,6 +212,8 @@ def update_timeline(topic):
         return figure
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(topic))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
@@ -230,16 +229,3 @@ def tabs_scatter(value):
         dcc.Graph(id='scatter_3d', figure = scatter_3d)
     ])
 
-#@app.callback(Output(component_id='timeline_3', component_property='src'),
-#              [Input(component_id='input-value_3', component_property='value')]
-#              )
-#def update_timeline(value):
-#    try:
-#        image_filename = args['input'] + '/comparison_results_JSE_RWE/timelines/combined_corpus/timeline_topic_{}.png'.format(
-#            value)
-#        encoded_image = base64.b64encode(open(image_filename, 'rb').read())
-#        return 'data:image/png;base64,{}'.format(encoded_image.decode())
-#    except Exception as e:
-#        with open(args['input'] + '/errors.txt', 'a') as f:
-#            f.write(str(e))
-#            f.write('\n')
