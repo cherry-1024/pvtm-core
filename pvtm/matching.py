@@ -18,10 +18,9 @@ ap = argparse.ArgumentParser()
 # general
 ap.add_argument("-i", "--input", default="./Output",
                 help="path to the input data file. Default = './Output'")
-# ap.add_argument("-p", "--port", default=8050, type=int,
-#                help="dash app port. Default = 8050")
 args = vars(ap.parse_args())
 
+# load matching data frame and assignment costs
 assign= pd.read_csv(args['input']+"/comparison_results_JSE_RWE/matching/assign.csv", index_col='RWE')
 assignment_cost=pd.read_csv(args['input']+"/comparison_results_JSE_RWE/matching/assignment_cost.csv")
 timeline_jse = pd.read_csv(args['input']+"/comparison_results_JSE_RWE/matching/timeline_overview_1.csv",index_col='Unnamed: 0')
@@ -106,6 +105,8 @@ def update_img_JSE(value):
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(value))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
@@ -132,6 +133,8 @@ def update_timeline(topic):
         return figure
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(value))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
@@ -143,6 +146,8 @@ def assigment_cost(value):
         return 'Assignment cost: {}'.format(round(assignment_cost.at[round(float(value)),str(assign['JSE'][float(value)])],4))
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(value))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
