@@ -18,8 +18,7 @@ ap = argparse.ArgumentParser()
 # general
 ap.add_argument("-i", "--input", default="./Output",
                 help="path to the input data file. Default = './Output'")
-# ap.add_argument("-p", "--port", default=8050, type=int,
-#                help="dash app port. Default = 8050")
+
 args = vars(ap.parse_args())
 
 docs_dist= pd.read_csv(args['input']+"/comparison_results_JSE_RWE/cross_model/RWE/document_distribution.csv")
@@ -37,7 +36,7 @@ traces_2d=[]
 traces_3d = []
 unique_topics = ww_out.gmm_top_topic.unique()
 
-# 2D Plot
+# 2D Scatter Plot
 for topic in range(len(unique_topics)):
     r = lambda: random.randint(0, 255)
     colorhex = '#%02X%02X%02X' % (r(), r(), r())
@@ -79,7 +78,7 @@ scatter_2d = {
                'hovermode': 'closest'},
 }
 
-# 3D Plot
+# 3D Scatter Plot
 print('prepare 3d tsne scatter..')
 
 for topic in range(len(unique_topics)):
@@ -125,6 +124,7 @@ scatter_3d = {
                'hovermode': 'closest'},
 }
 
+# the model app layout contains documents distribution bar chart, wordcloud & timelines(side by side) and scatter plots
 layout = html.Div(children=[
     html.H2('Model 2 (JSE in RWE)', style={'textAlign': 'center', 'color': '#7FDBFF'}),
     dcc.Graph(
@@ -151,7 +151,7 @@ layout = html.Div(children=[
         html.Div([
             html.H2('Word Cloud', style={'textAlign': 'center', 'color': '#1C4E80'}),
             html.Img(id='img_2', style={'width': '500px'})
-        ], className="six columns"),
+        ], className="six columns"), # about 50 % of the layout
         html.Div([
             html.H2('Timeline', style={'textAlign': 'center', 'color': '#1C4E80'}),
             dcc.Graph(id='timeline_2', animate=False)
@@ -182,6 +182,8 @@ def update_img(value):
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(value))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
@@ -192,9 +194,9 @@ def update_timeline(topic):
     try:
         topic = str(topic)
         X = timeline_rwe.index  # timeline jse
-        Y = timeline_rwe[topic].values
+        Y = timeline_rwe[topic].ewm(span=5).mean().values
         X1 = timeline_jse.index # timeline rwe
-        Y1 = timeline_jse[topic].values
+        Y1 = timeline_jse[topic].ewm(span=5).mean().values
         figure = {
             'data': [
                 {'x': X, 'y': Y, 'type': 'line', 'name': 'RWE'},
@@ -209,6 +211,8 @@ def update_timeline(topic):
         return figure
     except Exception as e:
         with open(args['input'] + '/errors.txt', 'a') as f:
+            f.write('Topic {}'.format(topic))
+            f.write('\n')
             f.write(str(e))
             f.write('\n')
 
